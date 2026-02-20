@@ -1,0 +1,1 @@
+{"version":2,"defects":{"Tests\\Feature\\HealthCheckTest::test_health_endpoint_returns_ok":7},"times":{"Tests\\Unit\\ExampleTest::test_truthy_assertion":0.004,"Tests\\Feature\\HealthCheckTest::test_health_endpoint_returns_ok":2.03,"Tests\\Feature\\HealthCheckTest::test_application_boots_in_testing_environment":0.026}}
