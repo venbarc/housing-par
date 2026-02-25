@@ -1,55 +1,65 @@
 import { router } from '@inertiajs/react';
-import { Notification } from '../../types';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
+import { Notification } from '../../types';
 
-interface Props { notifications: Notification[] }
+interface Props {
+    notifications: Notification[];
+    compact?: boolean;
+}
 
-export default function NotificationList({ notifications }: Props) {
+export default function NotificationList({ notifications, compact = false }: Props) {
     const markRead = (id: number) => {
         router.patch(`/notifications/${id}/read`, {}, {
-            onError: () => toast.error('Failed to mark read'),
+            preserveScroll: true,
+            onError: () => toast.error('Could not mark notification as read.'),
         });
     };
 
     const remove = (id: number) => {
         router.delete(`/notifications/${id}`, {
-            onError: () => toast.error('Failed to delete'),
+            preserveScroll: true,
+            onError: () => toast.error('Could not delete notification.'),
         });
     };
 
     return (
-        <div className="card p-4" id="notifications">
-            <div className="flex items-center justify-between mb-3">
+        <section className="card p-4" id="notifications">
+            <div className="mb-3 flex items-center justify-between">
                 <div>
-                    <p className="font-semibold text-slate-800">Notifications</p>
-                    <p className="text-sm text-slate-500">Activity log</p>
+                    <h3 className="text-lg font-bold">Notifications</h3>
+                    <p className="text-sm text-[var(--text-subtle)]">Recent activity log</p>
                 </div>
-                <span className="text-xs text-slate-500">{notifications.length} events</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-subtle)]">
+                    {notifications.length} events
+                </span>
             </div>
-            <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
-                {notifications.map((n) => (
-                    <div key={n.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
-                        <div>
-                            <p className="text-sm text-slate-800">{n.message}</p>
-                            <p className="text-xs text-slate-500">
-                                {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+
+            <div className={`space-y-2 ${compact ? 'max-h-[356px]' : 'max-h-[540px]'} overflow-y-auto pr-1`}>
+                {notifications.map((notification) => (
+                    <article key={notification.id} className="surface-subtle p-3">
+                        <p className="text-sm text-[var(--text-strong)]">{notification.message}</p>
+                        <div className="mt-2 flex items-center justify-between">
+                            <p className="text-xs text-[var(--text-subtle)]">
+                                {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                             </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {!n.is_read && (
-                                <button onClick={() => markRead(n.id)} className="text-xs text-primary-600 hover:underline">
-                                    Mark read
+                            <div className="flex items-center gap-2">
+                                {!notification.is_read && (
+                                    <button onClick={() => markRead(notification.id)} className="btn-link text-xs">
+                                        Mark read
+                                    </button>
+                                )}
+                                <button onClick={() => remove(notification.id)} className="text-xs font-semibold text-[var(--text-subtle)] hover:text-[var(--text-strong)]">
+                                    Delete
                                 </button>
-                            )}
-                            <button onClick={() => remove(n.id)} className="text-xs text-slate-500 hover:underline">
-                                Delete
-                            </button>
+                            </div>
                         </div>
-                    </div>
+                    </article>
                 ))}
-                {notifications.length === 0 && <p className="text-sm text-slate-500">No notifications yet.</p>}
+                {notifications.length === 0 && (
+                    <p className="py-4 text-center text-sm text-[var(--text-subtle)]">No notifications yet.</p>
+                )}
             </div>
-        </div>
+        </section>
     );
 }

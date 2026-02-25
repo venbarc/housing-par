@@ -8,9 +8,19 @@ use App\Models\Bed;
 use App\Models\Notification;
 use App\Models\Patient;
 use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PatientController extends Controller
 {
+    public function index(): Response
+    {
+        return Inertia::render('Patients/Index', [
+            'patients' => Patient::orderBy('name')->get(),
+            'beds' => Bed::with('patient')->orderBy('bed_number')->get(),
+        ]);
+    }
+
     public function store(StorePatientRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -37,7 +47,7 @@ class PatientController extends Controller
             'is_read' => false,
         ]);
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
     public function update(UpdatePatientRequest $request, Patient $patient): RedirectResponse
@@ -71,7 +81,7 @@ class PatientController extends Controller
 
         $patient->update($data);
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
     public function destroy(Patient $patient): RedirectResponse
@@ -81,6 +91,6 @@ class PatientController extends Controller
         }
         $patient->delete();
 
-        return redirect()->route('dashboard');
+        return back();
     }
 }

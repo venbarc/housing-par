@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
-import { Document, Patient } from '../../types';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
+import { Document, Patient } from '../../types';
 
 interface Props {
     documents: Document[];
@@ -9,44 +9,49 @@ interface Props {
 }
 
 export default function DocumentPanel({ documents, patients }: Props) {
-    const patientName = (id: number) => patients.find((p) => p.id === id)?.name ?? 'Unknown';
+    const patientDocs = documents.filter((doc) => doc.patient_id);
+    const patientName = (id: number) => patients.find((patient) => patient.id === id)?.name ?? 'Unknown patient';
 
     const remove = (id: number) => {
         router.delete(`/documents/${id}`, {
-            onError: () => toast.error('Failed to delete'),
+            preserveScroll: true,
+            onError: () => toast.error('Could not delete document.'),
         });
     };
 
     return (
-        <div className="card p-4" id="documents">
-            <div className="flex items-center justify-between mb-3">
+        <section className="card p-4" id="documents">
+            <div className="mb-3 flex items-center justify-between">
                 <div>
-                    <p className="font-semibold text-slate-800">Documents</p>
-                    <p className="text-sm text-slate-500">Attachments</p>
+                    <h3 className="text-lg font-bold">Documents</h3>
+                    <p className="text-sm text-slate-500">Patient attachments in storage</p>
                 </div>
-                <span className="text-xs text-slate-500">{documents.length} files</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {documents.length} files
+                </span>
             </div>
-            <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
-                {documents.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
-                        <div>
-                            <p className="text-sm font-medium text-slate-800">{doc.file_name}</p>
-                            <p className="text-xs text-slate-500">
-                                {patientName(doc.patient_id)} &bull; {formatDistanceToNow(new Date(doc.uploaded_at), { addSuffix: true })}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <a href={doc.file_url} target="_blank" rel="noreferrer" className="text-xs text-primary-600 hover:underline">
+
+            <div className="space-y-2">
+                {patientDocs.map((document) => (
+                    <article key={document.id} className="surface-subtle p-3">
+                        <p className="text-sm font-semibold text-slate-800">{document.file_name}</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                            {patientName(document.patient_id!)} - {formatDistanceToNow(new Date(document.uploaded_at), { addSuffix: true })}
+                        </p>
+                        <div className="mt-2 flex items-center gap-3">
+                            <a href={document.file_url} target="_blank" rel="noreferrer" className="btn-link text-xs">
                                 Download
                             </a>
-                            <button onClick={() => remove(doc.id)} className="text-xs text-slate-500 hover:underline">
+                            <button className="text-xs font-semibold text-slate-500 hover:text-slate-700" onClick={() => remove(document.id)}>
                                 Delete
                             </button>
                         </div>
-                    </div>
+                    </article>
                 ))}
-                {documents.length === 0 && <p className="text-sm text-slate-500">No documents yet.</p>}
+                {patientDocs.length === 0 && (
+                    <p className="py-4 text-center text-sm text-slate-500">No documents uploaded yet.</p>
+                )}
             </div>
-        </div>
+        </section>
     );
 }

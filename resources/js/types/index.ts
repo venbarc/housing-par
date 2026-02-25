@@ -52,6 +52,7 @@ export interface Bed {
 export interface Document {
     id: number;
     patient_id: number;
+    bed_id?: number | null;
     file_name: string;
     file_type: string;
     file_size: number;
@@ -77,7 +78,8 @@ export interface User {
 
 export interface PageProps {
     auth: {
-        user: User;
+        user: User | null;
+        unread_notifications: number;
     };
     flash?: {
         message?: string | null;
