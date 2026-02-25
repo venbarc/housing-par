@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('beds', [BedController::class, 'index'])->name('beds.index');
+    Route::get('patients', [PatientController::class, 'index'])->name('patients.index');
+    Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('wards', [WardController::class, 'index'])->name('wards.index');
 
     // Beds
     Route::post('beds', [BedController::class, 'store'])->name('beds.store');

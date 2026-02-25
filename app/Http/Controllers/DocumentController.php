@@ -5,21 +5,38 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Models\Document;
 use App\Models\Notification;
+use App\Models\Patient;
+use App\Models\Bed;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class DocumentController extends Controller
 {
+    public function index(): Response
+    {
+        return Inertia::render('Documents/Index', [
+            'documents' => Document::orderByDesc('uploaded_at')->get(),
+            'patients' => Patient::orderBy('name')->get(),
+            'beds' => Bed::orderBy('bed_number')->get(),
+        ]);
+    }
+
     public function store(StoreDocumentRequest $request): RedirectResponse
     {
         $file = $request->file('file');
-        $patientId = $request->validated()['patient_id'];
+        $data = $request->validated();
+        $patientId = $data['patient_id'] ?? null;
+        $bedId = $data['bed_id'] ?? null;
 
-        $path = $file->store("patients/{$patientId}/documents", 's3');
+        $basePath = $patientId ? "patients/{$patientId}/documents" : "beds/{$bedId}/documents";
+        $path = $file->store($basePath, 's3');
         $url = Storage::disk('s3')->url($path);
 
         $document = Document::create([
             'patient_id' => $patientId,
+            'bed_id' => $bedId,
             'file_name' => $file->getClientOriginalName(),
             'file_type' => $file->getClientMimeType(),
             'file_size' => $file->getSize(),
@@ -34,7 +51,7 @@ class DocumentController extends Controller
             'is_read' => false,
         ]);
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
     public function destroy(Document $document): RedirectResponse
@@ -42,6 +59,6 @@ class DocumentController extends Controller
         Storage::disk('s3')->delete($document->storage_path);
         $document->delete();
 
-        return redirect()->route('dashboard');
+        return back();
     }
 }

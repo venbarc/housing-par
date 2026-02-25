@@ -1,30 +1,54 @@
 import { Ward } from '../../types';
 
-interface Props { wards: Ward[] }
+interface Props {
+    wards: Ward[];
+    onEdit?: (ward: Ward) => void;
+    editingId?: number | null;
+}
 
-export default function WardPanel({ wards }: Props) {
+export default function WardPanel({ wards, onEdit, editingId }: Props) {
     return (
-        <div className="card p-4" id="wards">
-            <div className="flex items-center justify-between mb-3">
+        <section className="card p-4" id="wards">
+            <div className="mb-3 flex items-center justify-between">
                 <div>
-                    <p className="font-semibold text-slate-800">Wards</p>
-                    <p className="text-sm text-slate-500">Ward / Room overview</p>
+                    <h3 className="text-lg font-bold">Wards</h3>
+                    <p className="text-sm text-[var(--text-subtle)]">Location and unit metadata</p>
                 </div>
-                <span className="text-xs text-slate-500">{wards.length} wards</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-subtle)]">
+                    {wards.length} wards
+                </span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {wards.map((w) => (
-                    <div key={w.id} className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-soft">
-                        <p className="font-medium text-slate-800">{w.name}</p>
-                        <p className="text-xs text-slate-500">
-                            Floor: {w.floor ?? 'N/A'} &bull; {w.description ?? 'No description'}
-                        </p>
-                    </div>
+
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {wards.map((ward) => (
+                    <article
+                        key={ward.id}
+                        className={`surface-subtle p-3 ${editingId === ward.id ? 'ring-2 ring-blue-400/60' : ''}`}
+                    >
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <p className="font-semibold text-[var(--text-strong)]">{ward.name}</p>
+                                <p className="mt-1 text-sm text-[var(--text-muted)]">
+                                    Floor {ward.floor ?? 'N/A'} - {ward.description ?? 'No description'}
+                                </p>
+                            </div>
+
+                            {onEdit && (
+                                <button
+                                    type="button"
+                                    onClick={() => onEdit(ward)}
+                                    className="btn-secondary px-3 py-1 text-xs"
+                                >
+                                    Edit
+                                </button>
+                            )}
+                        </div>
+                    </article>
                 ))}
                 {wards.length === 0 && (
-                    <p className="text-sm text-slate-500">No wards yet. Create via the form above.</p>
+                    <p className="py-4 text-sm text-[var(--text-subtle)]">No wards yet.</p>
                 )}
             </div>
-        </div>
+        </section>
     );
 }

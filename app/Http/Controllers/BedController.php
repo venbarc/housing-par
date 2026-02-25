@@ -7,12 +7,26 @@ use App\Http\Requests\UpdateBedRequest;
 use App\Models\Bed;
 use App\Models\Notification;
 use App\Models\Patient;
+use App\Models\Ward;
+use App\Models\Document;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BedController extends Controller
 {
+    public function index(): Response
+    {
+        return Inertia::render('Beds/Index', [
+            'beds' => Bed::with('patient')->orderBy('bed_number')->get(),
+            'patients' => Patient::orderBy('name')->get(),
+            'wards' => Ward::orderBy('name')->get(),
+            'documents' => Document::orderByDesc('uploaded_at')->get(),
+        ]);
+    }
+
     public function store(StoreBedRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -31,7 +45,7 @@ class BedController extends Controller
             Notification::create(['type' => 'bed_occupied', 'message' => "Bed {$bed->bed_number} assigned to patient", 'is_read' => false]);
         }
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
     public function update(UpdateBedRequest $request, Bed $bed): RedirectResponse
@@ -58,7 +72,7 @@ class BedController extends Controller
 
         $bed->update($data);
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
     public function destroy(Bed $bed): RedirectResponse
@@ -68,7 +82,7 @@ class BedController extends Controller
         }
         $bed->delete();
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
     public function assign(Request $request, Bed $bed): RedirectResponse
@@ -93,7 +107,7 @@ class BedController extends Controller
             'is_read' => false,
         ]);
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
     public function discharge(Bed $bed): RedirectResponse
@@ -110,7 +124,7 @@ class BedController extends Controller
             'is_read' => false,
         ]);
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
     /** Fire-and-forget AJAX endpoint for canvas drag-and-drop */

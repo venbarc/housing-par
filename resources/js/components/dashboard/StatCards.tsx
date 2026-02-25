@@ -1,46 +1,59 @@
-import { Bed, Activity, FileText, Users } from 'lucide-react';
-import { Bed as BedType, Notification, Patient } from '../../types';
-import { bedStatusMeta } from '../../lib/status';
+import { Activity, BedDouble, FileText, Users } from 'lucide-react';
+import { Bed, Notification, Patient } from '../../types';
 
 interface Props {
-    beds: BedType[];
+    beds: Bed[];
     patients: Patient[];
     notifications: Notification[];
 }
 
 export default function StatCards({ beds, patients, notifications }: Props) {
-    const occupied = beds.filter((b) => b.status === 'occupied').length;
-    const available = beds.filter((b) => b.status === 'available').length;
-    const critical = patients.filter((p) => p.status === 'critical').length;
-    const unread = notifications.filter((n) => !n.is_read).length;
+    const occupiedBeds = beds.filter((bed) => bed.status === 'occupied').length;
+    const availableBeds = beds.filter((bed) => bed.status === 'available').length;
+    const criticalPatients = patients.filter((patient) => patient.status === 'critical').length;
+    const unreadNotifications = notifications.filter((notification) => !notification.is_read).length;
 
-    const cards = [
-        { label: 'Beds',     value: `${occupied}/${beds.length}`,    sub: `${available} available`,  icon: Bed,      color: 'text-primary-600' },
-        { label: 'Patients', value: patients.length.toString(),       sub: `${critical} critical`,    icon: Users,    color: 'text-teal-600' },
-        { label: 'Activity', value: notifications.length.toString(),  sub: `${unread} unread`,        icon: Activity, color: 'text-amber-600' },
+    const stats = [
         {
-            label: 'Statuses',
-            value: Object.values(bedStatusMeta).map((s) => s.label[0]).join(' '),
-            sub: 'Live updates',
+            label: 'Bed Occupancy',
+            value: `${occupiedBeds}/${beds.length || 0}`,
+            helper: `${availableBeds} available`,
+            icon: BedDouble,
+        },
+        {
+            label: 'Active Patients',
+            value: `${patients.length}`,
+            helper: `${criticalPatients} critical`,
+            icon: Users,
+        },
+        {
+            label: 'Unread Alerts',
+            value: `${unreadNotifications}`,
+            helper: `${notifications.length} total events`,
+            icon: Activity,
+        },
+        {
+            label: 'Recorded Events',
+            value: `${notifications.length}`,
+            helper: 'Live activity stream',
             icon: FileText,
-            color: 'text-slate-600',
         },
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {cards.map(({ label, value, sub, icon: Icon, color }) => (
-                <div key={label} className="card p-4 flex items-center justify-between">
-                    <div>
-                        <p className="text-sm text-slate-500">{label}</p>
-                        <p className="text-2xl font-semibold text-slate-900">{value}</p>
-                        <p className="text-sm text-slate-500 mt-1">{sub}</p>
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {stats.map(({ label, value, helper, icon: Icon }) => (
+                <article key={label} className="card p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-subtle)]">{label}</p>
+                        <span className="rounded-lg bg-primary-50 p-2 text-primary-700">
+                            <Icon className="h-4 w-4" />
+                        </span>
                     </div>
-                    <div className={`h-12 w-12 grid place-items-center rounded-lg bg-slate-50 ${color}`}>
-                        <Icon className="h-6 w-6" />
-                    </div>
-                </div>
+                    <p className="text-2xl font-extrabold text-[var(--text-strong)]">{value}</p>
+                    <p className="mt-1 text-sm text-[var(--text-subtle)]">{helper}</p>
+                </article>
             ))}
-        </div>
+        </section>
     );
 }

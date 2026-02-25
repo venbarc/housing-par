@@ -1,15 +1,15 @@
 import { BedStatus, PatientStatus } from '../types';
 
 export const bedStatusMeta: Record<BedStatus, { label: string; color: string; bg: string }> = {
-    available:   { label: 'Available',   color: 'text-green-700',   bg: 'bg-green-100' },
-    occupied:    { label: 'Occupied',    color: 'text-blue-700',    bg: 'bg-blue-100' },
-    cleaning:    { label: 'Cleaning',    color: 'text-amber-700',   bg: 'bg-amber-100' },
-    maintenance: { label: 'Maintenance', color: 'text-red-700',     bg: 'bg-red-100' },
+    available:   { label: 'Available',   color: 'text-status-available', bg: 'bg-status-available' },
+    occupied:    { label: 'Occupied',    color: 'text-status-occupied', bg: 'bg-status-occupied' },
+    cleaning:    { label: 'Cleaning',    color: 'text-status-cleaning', bg: 'bg-status-cleaning' },
+    maintenance: { label: 'Maintenance', color: 'text-status-maintenance', bg: 'bg-status-maintenance' },
 };
 
 export const patientStatusMeta: Record<PatientStatus, { label: string; color: string; bg: string }> = {
-    stable:     { label: 'Stable',     color: 'text-emerald-700', bg: 'bg-emerald-100' },
-    critical:   { label: 'Critical',   color: 'text-red-700',     bg: 'bg-red-100' },
-    recovering: { label: 'Recovering', color: 'text-blue-700',    bg: 'bg-blue-100' },
-    discharged: { label: 'Discharged', color: 'text-slate-600',   bg: 'bg-slate-100' },
+    stable:     { label: 'Stable',     color: 'text-patient-stable', bg: 'bg-patient-stable' },
+    critical:   { label: 'Critical',   color: 'text-patient-critical', bg: 'bg-patient-critical' },
+    recovering: { label: 'Recovering', color: 'text-patient-recovering', bg: 'bg-patient-recovering' },
+    discharged: { label: 'Discharged', color: 'text-patient-discharged', bg: 'bg-patient-discharged' },
 };

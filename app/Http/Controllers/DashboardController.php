@@ -18,8 +18,8 @@ class DashboardController extends Controller
             'beds' => Bed::with('patient')->orderBy('bed_number')->get(),
             'patients' => Patient::orderBy('name')->get(),
             'wards' => Ward::orderBy('name')->get(),
-            'documents' => Document::orderByDesc('uploaded_at')->get(),
-            'notifications' => Notification::orderByDesc('created_at')->limit(100)->get(),
+            'documents' => Document::orderByDesc('uploaded_at')->limit(40)->get(),
+            'notifications' => Notification::orderByDesc('created_at')->limit(80)->get(),
         ]);
     }
 }

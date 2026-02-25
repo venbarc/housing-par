@@ -1,60 +1,53 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bed, FileText, LayoutDashboard, Bell, Users, Map } from 'lucide-react';
+import { navItems } from './nav-items';
+import { PageProps } from '../../types';
 import { cn } from '../../lib/utils';
+import LogoMark from './LogoMark';
 
-const links = [
-    { href: '/',             label: 'Dashboard',     icon: LayoutDashboard },
-    { href: '#patients',     label: 'Patients',      icon: Users },
-    { href: '#documents',    label: 'Documents',     icon: FileText },
-    { href: '#notifications',label: 'Notifications', icon: Bell },
-    { href: '#wards',        label: 'Wards',         icon: Map },
-    { href: '#beds',         label: 'Beds',          icon: Bed },
-];
+function isActivePath(url: string, href: string, exact = false): boolean {
+    const path = url.split('?')[0];
+    if (exact) return path === href;
+    return path === href || path.startsWith(`${href}/`);
+}
 
 export default function Sidebar() {
-    const { url } = usePage();
+    const { url, props } = usePage<PageProps>();
+    const unread = props.auth.unread_notifications ?? 0;
 
     return (
-        <aside className="hidden lg:flex w-64 flex-col gap-4 p-4">
-            <div className="card p-4">
-                <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-primary-100 text-primary-700 grid place-items-center font-bold">
-                        HB
-                    </div>
-                    <div>
-                        <p className="text-sm text-slate-500">Hospital</p>
-                        <p className="font-semibold text-slate-800">Bed Manager</p>
-                    </div>
+        <aside className="hidden w-72 shrink-0 lg:block">
+            <div className="sticky top-6 space-y-4">
+                <div className="card px-4 py-5">
+                    <LogoMark variant="full" />
+                    <p className="mt-2 text-sm" style={{ color: 'var(--text-subtle)' }}>
+                        Capacity, patients, and documents in one workspace.
+                    </p>
                 </div>
-            </div>
-            <nav className="card p-2">
-                <ul className="flex flex-col gap-1">
-                    {links.map((item) => {
-                        const active = url === item.href;
-                        const Icon = item.icon;
-                        return (
-                            <li key={item.href}>
-                                <Link
-                                    href={item.href}
-                                    className={cn(
-                                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                                        active
-                                            ? 'bg-primary-50 text-primary-700'
-                                            : 'text-slate-600 hover:bg-slate-50',
-                                    )}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    {item.label}
-                                </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </nav>
-            <div className="card p-4 bg-gradient-to-br from-primary-50 to-teal-50">
-                <p className="text-sm text-slate-600">
-                    Track beds, patients, documents, and notifications in real time.
-                </p>
+
+                <nav className="card p-3">
+                    <ul className="space-y-1">
+                        {navItems.map((item) => {
+                            const Icon = item.icon;
+                            const active = isActivePath(url, item.href, item.exact);
+                            return (
+                                <li key={item.href}>
+                                    <Link
+                                        href={item.href}
+                                        className={cn('nav-link', active && 'active')}
+                                    >
+                                        <span className="flex items-center gap-2.5">
+                                            <Icon className="h-4 w-4" />
+                                            {item.label}
+                                        </span>
+                                        {item.href === '/notifications' && unread > 0 && (
+                                            <span className="badge text-xs">{unread}</span>
+                                        )}
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </nav>
             </div>
         </aside>
     );

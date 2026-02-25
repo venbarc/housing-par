@@ -14,6 +14,7 @@ class Document extends Model
 
     protected $fillable = [
         'patient_id',
+        'bed_id',
         'file_name',
         'file_type',
         'file_size',

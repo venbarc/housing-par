@@ -1,5 +1,6 @@
-import { useEffect, FormEventHandler } from 'react';
+import { FormEventHandler, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import AuthLayout from '../../components/auth/AuthLayout';
 
 interface Props {
     status?: string;
@@ -13,94 +14,78 @@ export default function Login({ status, canResetPassword }: Props) {
         remember: false as boolean,
     });
 
-    useEffect(() => {
-        return () => { reset('password'); };
-    }, []);
+    useEffect(() => () => reset('password'), []);
 
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
+    const submit: FormEventHandler = (event) => {
+        event.preventDefault();
         post('/login');
     };
 
     return (
         <>
             <Head title="Log in" />
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-md">
-                    <div className="card p-8 space-y-6">
-                        {/* Logo */}
-                        <div className="text-center">
-                            <div className="h-14 w-14 rounded-2xl bg-primary-100 text-primary-700 grid place-items-center font-bold text-2xl mx-auto mb-3">
-                                HB
-                            </div>
-                            <h1 className="text-2xl font-bold text-slate-900">Hospital Bed Manager</h1>
-                            <p className="text-sm text-slate-500 mt-1">Sign in to your account</p>
-                        </div>
-
-                        {status && (
-                            <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-                                {status}
-                            </div>
-                        )}
-
-                        <form onSubmit={submit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                                <input
-                                    type="email"
-                                    className="form-input w-full"
-                                    value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    required
-                                    autoFocus
-                                />
-                                {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                                <input
-                                    type="password"
-                                    className="form-input w-full"
-                                    value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    required
-                                />
-                                {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-2 text-sm text-slate-600">
-                                    <input
-                                        type="checkbox"
-                                        checked={data.remember}
-                                        onChange={(e) => setData('remember', e.target.checked)}
-                                    />
-                                    Remember me
-                                </label>
-                                {canResetPassword && (
-                                    <Link href="/forgot-password" className="text-sm text-primary-600 hover:underline">
-                                        Forgot password?
-                                    </Link>
-                                )}
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="btn-primary w-full"
-                            >
-                                {processing ? 'Signing in…' : 'Sign in'}
-                            </button>
-                        </form>
-
-                        <p className="text-center text-sm text-slate-500">
-                            Don't have an account?{' '}
-                            <Link href="/register" className="text-primary-600 hover:underline">Register</Link>
-                        </p>
+            <AuthLayout
+                title="Sign in"
+                subtitle="Use your staff credentials to access hospital operations."
+                footer={(
+                    <p>
+                        No account yet? <Link href="/register" className="btn-link">Create one</Link>
+                    </p>
+                )}
+            >
+                {status && (
+                    <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+                        {status}
                     </div>
-                </div>
-            </div>
+                )}
+
+                <form onSubmit={submit} className="space-y-4">
+                    <div>
+                        <label className="field-label">Email</label>
+                        <input
+                            type="email"
+                            className="form-input"
+                            value={data.email}
+                            onChange={(event) => setData('email', event.target.value)}
+                            required
+                            autoFocus
+                        />
+                        {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+                    </div>
+
+                    <div>
+                        <label className="field-label">Password</label>
+                        <input
+                            type="password"
+                            className="form-input"
+                            value={data.password}
+                            onChange={(event) => setData('password', event.target.value)}
+                            required
+                        />
+                        {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 text-sm text-slate-600">
+                            <input
+                                type="checkbox"
+                                checked={data.remember}
+                                onChange={(event) => setData('remember', event.target.checked)}
+                            />
+                            Remember me
+                        </label>
+                        {canResetPassword && (
+                            <Link href="/forgot-password" className="btn-link text-xs">
+                                Forgot password?
+                            </Link>
+                        )}
+                    </div>
+
+                    <button type="submit" className="btn-primary w-full" disabled={processing}>
+                        {processing ? 'Signing in...' : 'Sign in'}
+                    </button>
+                </form>
+            </AuthLayout>
         </>
     );
 }
