@@ -15,12 +15,9 @@ class UpdateBedRequest extends FormRequest
     {
         return [
             'bed_number' => ['sometimes', 'string', 'min:1'],
-            'ward_id' => ['sometimes', 'integer', 'exists:wards,id'],
-            'room' => ['sometimes', 'string', 'min:1'],
+            'bed_type' => ['sometimes', 'in:single,ada_single,double_top,double_bottom'],
+            'room_id' => ['sometimes', 'integer', 'exists:rooms,id'],
             'status' => ['sometimes', 'in:available,occupied,cleaning,maintenance'],
-            'pos_x' => ['sometimes', 'numeric'],
-            'pos_y' => ['sometimes', 'numeric'],
-            'patient_id' => ['sometimes', 'nullable', 'integer', 'exists:patients,id'],
         ];
     }
 }

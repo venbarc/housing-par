@@ -3,10 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\Bed;
+use App\Models\Facility;
 use App\Models\Notification;
 use App\Models\Patient;
+use App\Models\Room;
 use App\Models\User;
-use App\Models\Ward;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -23,90 +24,101 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Wards
-        $wardA = Ward::create(['name' => 'General Medicine', 'floor' => '1', 'description' => 'General patient care']);
-        $wardB = Ward::create(['name' => 'Surgical', 'floor' => '2', 'description' => 'Post-operative recovery']);
-        $wardC = Ward::create(['name' => 'Pediatrics', 'floor' => '3', 'description' => 'Children\'s ward']);
-        $wardD = Ward::create(['name' => 'ICU', 'floor' => '4', 'description' => 'Intensive care unit']);
+        $facility = Facility::firstOrCreate(
+            ['name' => 'Default Facility'],
+            ['notes' => 'Seeded default facility']
+        );
 
-        // Patients
-        $p1 = Patient::create([
-            'name' => 'Alice Johnson',
-            'age' => 45,
-            'gender' => 'Female',
-            'diagnosis' => 'Hypertension',
-            'status' => 'stable',
-            'doctor' => 'Dr. Smith',
-            'admission_date' => now()->subDays(3)->toDateString(),
-            'contact' => '555-0101',
-            'notes' => 'Monitoring blood pressure',
-        ]);
-
-        $p2 = Patient::create([
-            'name' => 'Bob Martinez',
-            'age' => 62,
-            'gender' => 'Male',
-            'diagnosis' => 'Post-op hip replacement',
-            'status' => 'recovering',
-            'doctor' => 'Dr. Adams',
-            'admission_date' => now()->subDays(5)->toDateString(),
-            'contact' => '555-0102',
-        ]);
-
-        $p3 = Patient::create([
-            'name' => 'Carol White',
-            'age' => 8,
-            'gender' => 'Female',
-            'diagnosis' => 'Pneumonia',
-            'status' => 'critical',
-            'doctor' => 'Dr. Lee',
-            'admission_date' => now()->subDays(1)->toDateString(),
-            'contact' => '555-0103',
-        ]);
+        // Rooms
+        $room101 = Room::create(['name' => '101', 'notes' => 'Sample room', 'facility_id' => $facility->id]);
+        $room102 = Room::create(['name' => '102', 'notes' => 'Sample room', 'facility_id' => $facility->id]);
+        $room103 = Room::create(['name' => '103', 'notes' => 'Sample room', 'facility_id' => $facility->id]);
 
         // Beds
-        $b1 = Bed::create([
-            'bed_number' => '101',
-            'ward_id' => $wardA->id,
-            'room' => 'A1',
-            'status' => 'occupied',
-            'pos_x' => 24,
-            'pos_y' => 24,
-            'patient_id' => $p1->id,
-        ]);
-        $p1->update(['bed_id' => $b1->id]);
+        $bed101a = Bed::create(['bed_number' => 'A', 'bed_type' => 'single', 'room_id' => $room101->id, 'status' => 'occupied']);
+        Bed::create(['bed_number' => 'B', 'bed_type' => 'ada_single', 'room_id' => $room101->id, 'status' => 'available']);
 
-        $b2 = Bed::create([
-            'bed_number' => '201',
-            'ward_id' => $wardB->id,
-            'room' => 'B1',
-            'status' => 'occupied',
-            'pos_x' => 292,
-            'pos_y' => 24,
-            'patient_id' => $p2->id,
-        ]);
-        $p2->update(['bed_id' => $b2->id]);
+        $bed102top = Bed::create(['bed_number' => 'Top', 'bed_type' => 'double_top', 'room_id' => $room102->id, 'status' => 'occupied']);
+        Bed::create(['bed_number' => 'Bottom', 'bed_type' => 'double_bottom', 'room_id' => $room102->id, 'status' => 'available']);
 
-        $b3 = Bed::create([
-            'bed_number' => '301',
-            'ward_id' => $wardC->id,
-            'room' => 'C1',
-            'status' => 'occupied',
-            'pos_x' => 560,
-            'pos_y' => 24,
-            'patient_id' => $p3->id,
-        ]);
-        $p3->update(['bed_id' => $b3->id]);
+        Bed::create(['bed_number' => 'A', 'bed_type' => 'single', 'room_id' => $room103->id, 'status' => 'available']);
+        Bed::create(['bed_number' => 'B', 'bed_type' => 'single', 'room_id' => $room103->id, 'status' => 'maintenance']);
 
-        Bed::create(['bed_number' => '102', 'ward_id' => $wardA->id, 'room' => 'A2', 'status' => 'available', 'pos_x' => 24, 'pos_y' => 252]);
-        Bed::create(['bed_number' => '103', 'ward_id' => $wardA->id, 'room' => 'A3', 'status' => 'cleaning', 'pos_x' => 292, 'pos_y' => 252]);
-        Bed::create(['bed_number' => '401', 'ward_id' => $wardD->id, 'room' => 'D1', 'status' => 'maintenance', 'pos_x' => 560, 'pos_y' => 252]);
+        // Patients (assigned to beds via bed_id)
+        Patient::create([
+            'first_name' => 'Levi',
+            'last_name' => 'Braziel',
+            'dob' => '1992-07-30',
+            'status' => 'referral',
+            'referral_from' => 'HOSN',
+            'insurance' => null,
+            'intake_date' => now()->subDays(3)->toDateString(),
+            'discharge_date' => null,
+            'psych_services_access' => 'wc_health',
+            'therapy_services_access' => 'wc_health',
+            'pcp_services_access' => 'other_agency',
+            'medications_access' => 'no',
+            'er_visits_past_year' => '1_3',
+            'inpatient_stays_past_year' => '0',
+            'dependable_transportation' => true,
+            'stable_housing' => false,
+            'homelessness_days_past_year' => '10_plus',
+            'vital_documents_access' => true,
+            'phone_access' => true,
+            'employed_or_income' => false,
+            'support_system' => true,
+            'is_veteran' => false,
+            'veteran_connected_services' => 'na',
+            'seeking_mat_services' => false,
+            'enrolled_mat_services' => false,
+            'arrests_past_12_months' => '0',
+            'arrests_lifetime' => '1_2',
+            'jail_days_past_12_months' => '0',
+            'jail_days_lifetime' => '1_7',
+            'prison_time_past_12_months' => '0',
+            'prison_time_lifetime' => '0',
+            'bed_id' => $bed101a->id,
+        ]);
+
+        Patient::create([
+            'first_name' => 'Tyler',
+            'last_name' => 'Miller-Jones',
+            'dob' => '1992-07-30',
+            'status' => 'walk_in',
+            'referral_from' => null,
+            'insurance' => null,
+            'intake_date' => now()->subDays(1)->toDateString(),
+            'discharge_date' => null,
+            'psych_services_access' => 'no',
+            'therapy_services_access' => 'no',
+            'pcp_services_access' => 'no',
+            'medications_access' => 'no',
+            'er_visits_past_year' => '0',
+            'inpatient_stays_past_year' => '0',
+            'dependable_transportation' => false,
+            'stable_housing' => false,
+            'homelessness_days_past_year' => '10_plus',
+            'vital_documents_access' => false,
+            'phone_access' => true,
+            'employed_or_income' => false,
+            'support_system' => false,
+            'is_veteran' => true,
+            'veteran_connected_services' => 'no',
+            'seeking_mat_services' => false,
+            'enrolled_mat_services' => false,
+            'arrests_past_12_months' => '0',
+            'arrests_lifetime' => '0',
+            'jail_days_past_12_months' => '0',
+            'jail_days_lifetime' => '0',
+            'prison_time_past_12_months' => '0',
+            'prison_time_lifetime' => '0',
+            'bed_id' => $bed102top->id,
+        ]);
 
         // Notifications
-        Notification::create(['type' => 'admission', 'message' => 'New patient admitted: Alice Johnson', 'is_read' => false]);
-        Notification::create(['type' => 'bed_occupied', 'message' => 'Bed 101 assigned to Alice Johnson', 'is_read' => true]);
-        Notification::create(['type' => 'admission', 'message' => 'New patient admitted: Bob Martinez', 'is_read' => false]);
-        Notification::create(['type' => 'critical', 'message' => 'Patient Carol White marked critical', 'is_read' => false]);
-        Notification::create(['type' => 'bed_occupied', 'message' => 'Bed 301 assigned to Carol White', 'is_read' => false]);
+        Notification::create(['type' => 'admission', 'message' => 'New intake: Levi Braziel', 'is_read' => false]);
+        Notification::create(['type' => 'bed_occupied', 'message' => 'Bed A assigned to Levi Braziel', 'is_read' => true]);
+        Notification::create(['type' => 'admission', 'message' => 'New intake: Tyler Miller-Jones', 'is_read' => false]);
+        Notification::create(['type' => 'bed_occupied', 'message' => 'Bed Top assigned to Tyler Miller-Jones', 'is_read' => false]);
     }
 }

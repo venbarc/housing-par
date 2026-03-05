@@ -1,76 +1,79 @@
 import { useForm } from '@inertiajs/react';
 import { FormEvent, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Ward } from '../../types';
+import { Facility } from '../../types';
 
 interface Props {
-    ward?: Ward | null;
+    facility?: Facility | null;
     onDone?: () => void;
 }
 
-export default function WardCreateForm({ ward, onDone }: Props) {
+export default function FacilityCreateForm({ facility, onDone }: Props) {
     const form = useForm({
         name: '',
-        floor: '',
-        description: '',
+        notes: '',
     });
 
-    const isEditing = Boolean(ward);
+    const isEditing = Boolean(facility);
 
     useEffect(() => {
-        if (ward) {
-            form.setData('name', ward.name);
-            form.setData('floor', ward.floor ?? '');
-            form.setData('description', ward.description ?? '');
+        if (facility) {
+            form.setData('name', facility.name);
+            form.setData('notes', facility.notes ?? '');
         } else {
             form.reset();
         }
         form.clearErrors();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ward?.id]);
+    }, [facility?.id]);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
         const action = isEditing ? form.patch : form.post;
-        const url = isEditing && ward ? `/wards/${ward.id}` : '/wards';
+        const url = isEditing && facility ? `/facilities/${facility.id}` : '/facilities';
 
         action(url, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success(isEditing ? 'Ward updated' : 'Ward created');
+                toast.success(isEditing ? 'Updated' : 'Created');
                 form.reset();
                 onDone?.();
             },
-            onError: (errors) => toast.error(String(Object.values(errors)[0] ?? 'Could not save ward.')),
+            onError: (errors) => toast.error(String(Object.values(errors)[0] ?? 'Could not save facility.')),
         });
     };
 
     return (
         <form onSubmit={submit} className="card p-4">
             <div className="mb-3">
-                <h3 className="text-lg font-bold">{isEditing ? 'Edit Ward' : 'Create Ward'}</h3>
+                <h3 className="text-lg font-bold">{isEditing ? 'Edit Name' : 'Create Name'}</h3>
                 <p className="text-sm text-[var(--text-subtle)]">
-                    {isEditing ? 'Update ward details and metadata' : 'Add a treatment area and metadata'}
+                    {isEditing ? 'Update grouping name' : 'Add a new facility (Name)'}
                 </p>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
                 <div>
-                    <label className="field-label">Ward Name</label>
-                    <input className="form-input" value={form.data.name} onChange={(event) => form.setData('name', event.target.value)} required />
+                    <label className="field-label">Name</label>
+                    <input
+                        className="form-input"
+                        value={form.data.name}
+                        onChange={(event) => form.setData('name', event.target.value)}
+                        required
+                    />
                 </div>
                 <div>
-                    <label className="field-label">Floor</label>
-                    <input className="form-input" value={form.data.floor} onChange={(event) => form.setData('floor', event.target.value)} />
-                </div>
-                <div>
-                    <label className="field-label">Description</label>
-                    <textarea className="form-textarea" value={form.data.description} onChange={(event) => form.setData('description', event.target.value)} />
+                    <label className="field-label">Notes</label>
+                    <textarea
+                        className="form-textarea"
+                        value={form.data.notes}
+                        onChange={(event) => form.setData('notes', event.target.value)}
+                    />
                 </div>
             </div>
 
             <button type="submit" className="btn-primary mt-4 w-full" disabled={form.processing}>
-                {form.processing ? 'Saving...' : isEditing ? 'Update Ward' : 'Save Ward'}
+                {form.processing ? 'Saving...' : isEditing ? 'Update' : 'Save'}
             </button>
             {isEditing && (
                 <button

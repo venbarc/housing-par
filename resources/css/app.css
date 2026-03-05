@@ -114,7 +114,7 @@
 }
 
 @layer components {
-    .page-shell { @apply mx-auto w-full max-w-[1440px] p-4 sm:p-6; }
+    .page-shell { @apply mx-auto w-full max-w-[1680px] p-4 sm:p-6; }
 
     .card {
         background: var(--card);

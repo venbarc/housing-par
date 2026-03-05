@@ -9,8 +9,8 @@ interface Props {
 }
 
 export default function PatientTable({ patients }: Props) {
-    const discharge = (bedId: number) => {
-        router.post(`/beds/${bedId}/discharge`, {}, {
+    const discharge = (bedId: number, patientId: number) => {
+        router.post(`/beds/${bedId}/discharge`, { patient_id: patientId }, {
             preserveScroll: true,
             onError: (errors) => toast.error(String(Object.values(errors)[0] ?? 'Failed to discharge patient.')),
         });
@@ -21,7 +21,7 @@ export default function PatientTable({ patients }: Props) {
             <div className="mb-3 flex items-center justify-between">
                 <div>
                     <h3 className="text-lg font-bold">Patients</h3>
-                    <p className="text-sm text-slate-500">Clinical status and assignment</p>
+                    <p className="text-sm text-slate-500">Intake records and bed assignment</p>
                 </div>
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     {patients.length} records
@@ -32,11 +32,16 @@ export default function PatientTable({ patients }: Props) {
                 <table className="min-w-full">
                     <thead>
                         <tr className="table-head border-b border-slate-200">
-                            <th className="py-2 text-left">Name</th>
-                            <th className="text-left">Doctor</th>
+                            <th className="py-2 text-left">First Name</th>
+                            <th className="text-left">Last Name</th>
+                            <th className="text-left">DOB</th>
                             <th className="text-left">Status</th>
+                            <th className="text-left">Referral From</th>
+                            <th className="text-left">Insurance</th>
                             <th className="text-left">Bed</th>
-                            <th className="text-left">Admitted</th>
+                            <th className="text-left">Intake Date</th>
+                            <th className="text-left">Discharge Date</th>
+                            <th className="text-left">Discharged At</th>
                             <th className="text-left">Action</th>
                         </tr>
                     </thead>
@@ -45,23 +50,39 @@ export default function PatientTable({ patients }: Props) {
                             const status = patientStatusMeta[patient.status];
                             return (
                                 <tr key={patient.id} className="border-b border-slate-100 last:border-b-0">
+                                    <td className="table-cell">{patient.first_name}</td>
+                                    <td className="table-cell">{patient.last_name}</td>
                                     <td className="table-cell">
-                                        <p className="font-semibold text-slate-800">{patient.name}</p>
-                                        <p className="text-xs text-slate-500">{patient.diagnosis}</p>
+                                        {patient.dob ? format(new Date(patient.dob), 'MM/dd/yyyy') : '-'}
                                     </td>
-                                    <td className="table-cell">{patient.doctor}</td>
                                     <td className="table-cell">
                                         <span className={`badge border-transparent ${status.bg} ${status.color}`}>
                                             {status.label}
                                         </span>
                                     </td>
-                                    <td className="table-cell">{patient.bed_id ?? '-'}</td>
                                     <td className="table-cell">
-                                        {patient.admission_date ? format(new Date(patient.admission_date), 'MMM d, yyyy') : '-'}
+                                        {patient.referral_from ?? '-'}
+                                    </td>
+                                    <td className="table-cell">
+                                        {patient.insurance ?? '-'}
+                                    </td>
+                                    <td className="table-cell">
+                                        {patient.bed
+                                            ? `${patient.bed.room?.name ?? 'Rm ?'} • ${patient.bed.bed_number}`
+                                            : patient.bed_id ?? '-'}
+                                    </td>
+                                    <td className="table-cell">
+                                        {patient.intake_date ? format(new Date(patient.intake_date), 'MM/dd/yyyy') : '-'}
+                                    </td>
+                                    <td className="table-cell">
+                                        {patient.discharge_date ? format(new Date(patient.discharge_date), 'MM/dd/yyyy') : '-'}
+                                    </td>
+                                    <td className="table-cell">
+                                        {patient.discharged_at ? format(new Date(patient.discharged_at), 'MM/dd/yyyy') : '-'}
                                     </td>
                                     <td className="table-cell">
                                         {patient.bed_id ? (
-                                            <button className="btn-link text-xs" onClick={() => discharge(patient.bed_id!)}>
+                                            <button className="btn-link text-xs" onClick={() => discharge(patient.bed_id!, patient.id)}>
                                                 Discharge
                                             </button>
                                         ) : (

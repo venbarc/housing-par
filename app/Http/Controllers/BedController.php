@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreBedRequest;
 use App\Http\Requests\UpdateBedRequest;
 use App\Models\Bed;
+use App\Models\Facility;
 use App\Models\Notification;
 use App\Models\Patient;
-use App\Models\Ward;
+use App\Models\Room;
 use App\Models\Document;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,122 +20,67 @@ class BedController extends Controller
     public function index(): Response
     {
         return Inertia::render('Beds/Index', [
-            'beds' => Bed::with('patient')->orderBy('bed_number')->get(),
-            'patients' => Patient::orderBy('name')->get(),
-            'wards' => Ward::orderBy('name')->get(),
+            'beds' => Bed::with(['patients', 'room.facility'])->orderBy('bed_number')->get(),
+            'patients' => Patient::orderBy('last_name')->orderBy('first_name')->get(),
+            'rooms' => Room::with('facility')->orderBy('name')->get(),
+            'facilities' => Facility::with('rooms')->orderBy('name')->get(),
             'documents' => Document::orderByDesc('uploaded_at')->get(),
         ]);
     }
 
     public function store(StoreBedRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-
-        if (isset($data['patient_id']) && $data['patient_id']) {
-            $patient = Patient::findOrFail($data['patient_id']);
-            if ($patient->bed_id) {
-                return back()->withErrors(['patient_id' => 'Patient already assigned to a bed.']);
-            }
-        }
-
-        $bed = Bed::create($data);
-
-        if ($bed->patient_id) {
-            Patient::where('id', $bed->patient_id)->update(['bed_id' => $bed->id, 'status' => 'occupied']);
-            Notification::create(['type' => 'bed_occupied', 'message' => "Bed {$bed->bed_number} assigned to patient", 'is_read' => false]);
-        }
+        Bed::create($request->validated());
 
         return back();
     }
 
     public function update(UpdateBedRequest $request, Bed $bed): RedirectResponse
     {
-        $data = $request->validated();
-
-        // Handle patient assignment change
-        if (array_key_exists('patient_id', $data)) {
-            $newPatientId = $data['patient_id'];
-            if ($newPatientId && $newPatientId !== $bed->patient_id) {
-                $patient = Patient::find($newPatientId);
-                if (! $patient) {
-                    return back()->withErrors(['patient_id' => 'Patient not found.']);
-                }
-                if ($patient->bed_id) {
-                    return back()->withErrors(['patient_id' => 'Patient already assigned to another bed.']);
-                }
-                $patient->update(['bed_id' => $bed->id, 'status' => 'occupied']);
-            }
-            if ($newPatientId === null && $bed->patient_id) {
-                Patient::where('id', $bed->patient_id)->update(['bed_id' => null]);
-            }
-        }
-
-        $bed->update($data);
+        $bed->update($request->validated());
 
         return back();
     }
 
     public function destroy(Bed $bed): RedirectResponse
     {
-        if ($bed->patient_id) {
-            return back()->withErrors(['bed' => 'Cannot delete a bed with an assigned patient.']);
+        $patientCount = Patient::where('bed_id', $bed->id)->count();
+        if ($patientCount > 0) {
+            return back()->withErrors(['bed' => 'Cannot delete a bed with assigned patients.']);
         }
         $bed->delete();
 
         return back();
     }
 
-    public function assign(Request $request, Bed $bed): RedirectResponse
+    public function discharge(Request $request, Bed $bed): RedirectResponse
     {
-        $request->validate(['patient_id' => ['required', 'integer', 'exists:patients,id']]);
-
-        if ($bed->patient_id) {
-            return back()->withErrors(['bed' => 'Bed already occupied.']);
-        }
-
-        $patient = Patient::findOrFail($request->patient_id);
-        if ($patient->bed_id) {
-            return back()->withErrors(['patient_id' => 'Patient already assigned to a bed.']);
-        }
-
-        $bed->update(['patient_id' => $patient->id, 'status' => 'occupied']);
-        $patient->update(['bed_id' => $bed->id, 'status' => 'occupied']);
-
-        Notification::create([
-            'type' => 'bed_occupied',
-            'message' => "Patient assigned to bed {$bed->bed_number}",
-            'is_read' => false,
+        $request->validate([
+            'patient_id' => ['required', 'integer', 'exists:patients,id'],
         ]);
 
-        return back();
-    }
+        $patient = Patient::where('id', $request->patient_id)
+            ->where('bed_id', $bed->id)
+            ->first();
 
-    public function discharge(Bed $bed): RedirectResponse
-    {
-        if ($bed->patient_id) {
-            Patient::where('id', $bed->patient_id)->update(['bed_id' => null, 'status' => 'discharged']);
+        if (! $patient) {
+            return back()->withErrors(['patient_id' => 'Patient is not assigned to this bed.']);
         }
 
-        $bed->update(['patient_id' => null, 'status' => 'available']);
+        $patient->update([
+            'bed_id' => null,
+            'discharged_bed_id' => $bed->id,
+            'discharged_at' => now(),
+        ]);
+
+        $bed->update(['status' => 'available']);
 
         Notification::create([
             'type' => 'bed_vacated',
-            'message' => "Bed {$bed->bed_number} is now available",
+            'message' => "Patient {$patient->first_name} {$patient->last_name} discharged from bed {$bed->bed_number}",
             'is_read' => false,
         ]);
 
         return back();
-    }
-
-    /** Fire-and-forget AJAX endpoint for canvas drag-and-drop */
-    public function updatePosition(Request $request, Bed $bed): JsonResponse
-    {
-        $data = $request->validate([
-            'pos_x' => ['required', 'numeric'],
-            'pos_y' => ['required', 'numeric'],
-        ]);
-        $bed->update($data);
-
-        return response()->json(['id' => $bed->id, 'pos_x' => $bed->pos_x, 'pos_y' => $bed->pos_y]);
     }
 }

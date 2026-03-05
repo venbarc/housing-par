@@ -8,8 +8,6 @@ export const bedStatusMeta: Record<BedStatus, { label: string; color: string; bg
 };
 
 export const patientStatusMeta: Record<PatientStatus, { label: string; color: string; bg: string }> = {
-    stable:     { label: 'Stable',     color: 'text-patient-stable', bg: 'bg-patient-stable' },
-    critical:   { label: 'Critical',   color: 'text-patient-critical', bg: 'bg-patient-critical' },
-    recovering: { label: 'Recovering', color: 'text-patient-recovering', bg: 'bg-patient-recovering' },
-    discharged: { label: 'Discharged', color: 'text-patient-discharged', bg: 'bg-patient-discharged' },
+    referral: { label: 'Referral', color: 'text-patient-stable', bg: 'bg-patient-stable' },
+    walk_in:  { label: 'Walk-In',  color: 'text-patient-recovering', bg: 'bg-patient-recovering' },
 };

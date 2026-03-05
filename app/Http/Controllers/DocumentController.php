@@ -18,7 +18,7 @@ class DocumentController extends Controller
     {
         return Inertia::render('Documents/Index', [
             'documents' => Document::orderByDesc('uploaded_at')->get(),
-            'patients' => Patient::orderBy('name')->get(),
+            'patients' => Patient::orderBy('last_name')->orderBy('first_name')->get(),
             'beds' => Bed::orderBy('bed_number')->get(),
         ]);
     }

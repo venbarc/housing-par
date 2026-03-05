@@ -21,7 +21,7 @@ export default function PatientsIndex({ patients, beds }: Props) {
     return (
         <>
             <Head title="Patients" />
-            <AppShell title="Patients" description="Patient records, clinical status, and discharge workflow">
+            <AppShell title="Patients" description="Intake records, bed assignment, and discharge workflow">
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
                     <div className="xl:col-span-2">
                         <PatientTable patients={patients} />

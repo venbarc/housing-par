@@ -10,7 +10,8 @@ interface Props {
 export default function StatCards({ beds, patients, notifications }: Props) {
     const occupiedBeds = beds.filter((bed) => bed.status === 'occupied').length;
     const availableBeds = beds.filter((bed) => bed.status === 'available').length;
-    const criticalPatients = patients.filter((patient) => patient.status === 'critical').length;
+    const activeIntakes = patients.filter((patient) => !patient.discharged_at).length;
+    const referralIntakes = patients.filter((patient) => !patient.discharged_at && patient.status === 'referral').length;
     const unreadNotifications = notifications.filter((notification) => !notification.is_read).length;
 
     const stats = [
@@ -22,8 +23,8 @@ export default function StatCards({ beds, patients, notifications }: Props) {
         },
         {
             label: 'Active Patients',
-            value: `${patients.length}`,
-            helper: `${criticalPatients} critical`,
+            value: `${activeIntakes}`,
+            helper: `${referralIntakes} referrals`,
             icon: Users,
         },
         {

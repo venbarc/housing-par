@@ -46,7 +46,7 @@ export default function DocumentUploadForm({ patients }: Props) {
                     >
                         <option value="">Select patient</option>
                         {patients.map((patient) => (
-                            <option key={patient.id} value={patient.id}>{patient.name}</option>
+                            <option key={patient.id} value={patient.id}>{patient.last_name}, {patient.first_name}</option>
                         ))}
                     </select>
                 </div>

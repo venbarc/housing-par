@@ -10,7 +10,10 @@ interface Props {
 
 export default function DocumentPanel({ documents, patients }: Props) {
     const patientDocs = documents.filter((doc) => doc.patient_id);
-    const patientName = (id: number) => patients.find((patient) => patient.id === id)?.name ?? 'Unknown patient';
+    const patientName = (id: number) => {
+        const patient = patients.find((p) => p.id === id);
+        return patient ? `${patient.last_name}, ${patient.first_name}` : 'Unknown patient';
+    };
 
     const remove = (id: number) => {
         router.delete(`/documents/${id}`, {

@@ -15,12 +15,9 @@ class StoreBedRequest extends FormRequest
     {
         return [
             'bed_number' => ['required', 'string', 'min:1'],
-            'ward_id' => ['required', 'integer', 'exists:wards,id'],
-            'room' => ['required', 'string', 'min:1'],
+            'bed_type' => ['required', 'in:single,ada_single,double_top,double_bottom'],
+            'room_id' => ['required', 'integer', 'exists:rooms,id'],
             'status' => ['required', 'in:available,occupied,cleaning,maintenance'],
-            'pos_x' => ['sometimes', 'numeric'],
-            'pos_y' => ['sometimes', 'numeric'],
-            'patient_id' => ['sometimes', 'nullable', 'integer', 'exists:patients,id'],
         ];
     }
 }

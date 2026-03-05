@@ -16,8 +16,8 @@ class PatientController extends Controller
     public function index(): Response
     {
         return Inertia::render('Patients/Index', [
-            'patients' => Patient::orderBy('name')->get(),
-            'beds' => Bed::with('patient')->orderBy('bed_number')->get(),
+            'patients' => Patient::with('bed.room.facility')->orderBy('last_name')->orderBy('first_name')->get(),
+            'beds' => Bed::with(['patients', 'room.facility'])->orderBy('bed_number')->get(),
         ]);
     }
 
@@ -25,25 +25,29 @@ class PatientController extends Controller
     {
         $data = $request->validated();
 
-        if (isset($data['bed_id']) && $data['bed_id']) {
-            $bed = Bed::find($data['bed_id']);
+        $bedId = $data['bed_id'] ?? null;
+        if ($bedId) {
+            $bed = Bed::withCount('patients')->find($bedId);
             if (! $bed) {
                 return back()->withErrors(['bed_id' => 'Bed not found.']);
             }
-            if ($bed->patient_id) {
-                return back()->withErrors(['bed_id' => 'Bed already occupied.']);
+            if ($bed->status === 'maintenance') {
+                return back()->withErrors(['bed_id' => 'Bed is under maintenance.']);
+            }
+            if ($bed->patients_count > 0) {
+                return back()->withErrors(['bed_id' => 'Bed is already occupied.']);
             }
         }
 
         $patient = Patient::create($data);
 
         if ($patient->bed_id) {
-            Bed::where('id', $patient->bed_id)->update(['patient_id' => $patient->id, 'status' => 'occupied']);
+            Bed::where('id', $patient->bed_id)->update(['status' => 'occupied']);
         }
 
         Notification::create([
             'type' => 'admission',
-            'message' => "New patient admitted: {$patient->name}",
+            'message' => "New intake: {$patient->first_name} {$patient->last_name}",
             'is_read' => false,
         ]);
 
@@ -59,37 +63,48 @@ class PatientController extends Controller
             $oldBedId = $patient->bed_id;
 
             if ($newBedId && $newBedId !== $oldBedId) {
-                $bed = Bed::find($newBedId);
+                $bed = Bed::withCount('patients')->find($newBedId);
                 if (! $bed) {
                     return back()->withErrors(['bed_id' => 'Bed not found.']);
                 }
-                if ($bed->patient_id && $bed->patient_id !== $patient->id) {
-                    return back()->withErrors(['bed_id' => 'Bed already occupied.']);
+                if ($bed->status === 'maintenance') {
+                    return back()->withErrors(['bed_id' => 'Bed is under maintenance.']);
                 }
-                // Free old bed
-                if ($oldBedId) {
-                    Bed::where('id', $oldBedId)->update(['patient_id' => null, 'status' => 'available']);
+                if ($bed->patients_count > 0) {
+                    return back()->withErrors(['bed_id' => 'Bed is already occupied.']);
                 }
-                // Assign new bed
-                $bed->update(['patient_id' => $patient->id, 'status' => 'occupied']);
             }
 
-            if ($newBedId === null && $oldBedId) {
-                Bed::where('id', $oldBedId)->update(['patient_id' => null, 'status' => 'available']);
+            // Free old bed if changing/unassigning.
+            if ($oldBedId && $newBedId !== $oldBedId) {
+                Bed::where('id', $oldBedId)->update(['status' => 'available']);
             }
         }
 
         $patient->update($data);
+
+        // Update new bed status if bed changed
+        if (isset($newBedId) && $newBedId && $newBedId !== $oldBedId) {
+            Bed::where('id', $newBedId)->update(['status' => 'occupied']);
+        }
 
         return back();
     }
 
     public function destroy(Patient $patient): RedirectResponse
     {
-        if ($patient->bed_id) {
-            Bed::where('id', $patient->bed_id)->update(['patient_id' => null, 'status' => 'available']);
-        }
+        $bedId = $patient->bed_id;
         $patient->delete();
+
+        if ($bedId) {
+            $remainingCount = Patient::where('bed_id', $bedId)->count();
+            $bed = Bed::find($bedId);
+            if ($bed) {
+                if ($remainingCount === 0) {
+                    $bed->update(['status' => 'available']);
+                }
+            }
+        }
 
         return back();
     }

@@ -12,4 +12,3 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Bed position update — fire-and-forget from BedCanvas drag
-Route::patch('beds/{bed}/position', [BedController::class, 'updatePosition']);

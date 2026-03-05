@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Bed, Document, Notification, PageProps, Patient, Ward } from '../types';
+import { Bed, Document, Notification, PageProps, Patient, Room } from '../types';
 import AppShell from '../components/layout/AppShell';
 import StatCards from '../components/dashboard/StatCards';
 import NotificationList from '../components/notifications/NotificationList';
@@ -9,16 +9,16 @@ import { bedStatusMeta } from '../lib/status';
 interface Props extends PageProps {
     beds: Bed[];
     patients: Patient[];
-    wards: Ward[];
+    rooms: Room[];
     documents: Document[];
     notifications: Notification[];
 }
 
-export default function Dashboard({ beds, patients, wards, documents, notifications }: Props) {
+export default function Dashboard({ beds, patients, rooms, documents, notifications }: Props) {
     useEffect(() => {
         const interval = setInterval(() => {
             router.reload({
-                only: ['beds', 'patients', 'documents', 'notifications', 'wards'],
+                only: ['beds', 'patients', 'documents', 'notifications', 'rooms'],
             });
         }, 5000);
         return () => clearInterval(interval);
@@ -33,7 +33,7 @@ export default function Dashboard({ beds, patients, wards, documents, notificati
             <Head title="Dashboard" />
             <AppShell
                 title="Dashboard"
-                description="Operational overview across beds, patients, documents, and wards."
+                description="Operational overview across beds, patients, documents, and rooms."
             >
                 <StatCards beds={beds} patients={patients} notifications={notifications} />
 
@@ -60,10 +60,12 @@ export default function Dashboard({ beds, patients, wards, documents, notificati
                                             </span>
                                         </div>
                                         <p className="mt-1 text-xs text-[var(--text-subtle)]">
-                                            Ward {bed.ward_id} - Room {bed.room}
+                                            {bed.room?.name ?? 'No room'}
                                         </p>
                                         <p className="mt-1 text-sm text-[var(--text-muted)]">
-                                            {bed.patient?.name ?? 'No patient assigned'}
+                                            {(bed.patients?.length ?? 0) > 0
+                                                ? bed.patients!.map((p) => `${p.first_name} ${p.last_name}`).join(', ')
+                                                : 'No intake assigned'}
                                         </p>
                                     </article>
                                 );
@@ -111,15 +113,15 @@ export default function Dashboard({ beds, patients, wards, documents, notificati
                     <section className="card p-4">
                         <div className="mb-3 flex items-center justify-between">
                             <div>
-                                <h3 className="text-lg font-bold">Wards</h3>
-                                <p className="text-sm text-[var(--text-subtle)]">{wards.length} configured wards</p>
+                                <h3 className="text-lg font-bold">Rooms</h3>
+                                <p className="text-sm text-[var(--text-subtle)]">{rooms.length} configured rooms</p>
                             </div>
-                            <Link href="/wards" className="btn-link">Open</Link>
+                            <Link href="/rooms" className="btn-link">Open</Link>
                         </div>
                         <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-                            {wards.slice(0, 5).map((ward) => (
-                                <li key={ward.id} className="surface-subtle p-2.5">
-                                    {ward.name} {ward.floor ? `(Floor ${ward.floor})` : ''}
+                            {rooms.slice(0, 5).map((room) => (
+                                <li key={room.id} className="surface-subtle p-2.5">
+                                    {room.name}
                                 </li>
                             ))}
                         </ul>

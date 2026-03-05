@@ -1,4 +1,4 @@
-import { Bell, BedDouble, ClipboardList, LayoutDashboard, Users, Building2 } from 'lucide-react';
+import { Bell, BedDouble, ClipboardList, LayoutDashboard, Users, Building2, BarChart3 } from 'lucide-react';
 
 export interface NavItem {
     href: string;
@@ -12,6 +12,7 @@ export const navItems: NavItem[] = [
     { href: '/beds', label: 'Beds', icon: BedDouble },
     { href: '/patients', label: 'Patients', icon: Users },
     { href: '/documents', label: 'Documents', icon: ClipboardList },
+    { href: '/reports', label: 'Reports', icon: BarChart3 },
     { href: '/notifications', label: 'Notifications', icon: Bell },
-    { href: '/wards', label: 'Wards', icon: Building2 },
+    { href: '/facilities', label: 'Name', icon: Building2 },
 ];

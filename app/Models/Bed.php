@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Bed extends Model
 {
@@ -12,26 +13,18 @@ class Bed extends Model
 
     protected $fillable = [
         'bed_number',
-        'ward_id',
-        'room',
+        'bed_type',
+        'room_id',
         'status',
-        'pos_x',
-        'pos_y',
-        'patient_id',
     ];
 
-    protected $casts = [
-        'pos_x' => 'float',
-        'pos_y' => 'float',
-    ];
-
-    public function ward(): BelongsTo
+    public function room(): BelongsTo
     {
-        return $this->belongsTo(Ward::class);
+        return $this->belongsTo(Room::class);
     }
 
-    public function patient(): BelongsTo
+    public function patients(): HasMany
     {
-        return $this->belongsTo(Patient::class);
+        return $this->hasMany(Patient::class, 'bed_id');
     }
 }
