@@ -12,6 +12,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\ImportController;
+use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -45,6 +47,7 @@ Route::middleware(['auth', 'can_login', 'allocated'])->group(function () {
     Route::get('reports/export/beds', [ReportController::class, 'exportBeds'])->name('reports.export.beds');
     Route::get('reports/export/discharges', [ReportController::class, 'exportDischarges'])->name('reports.export.discharges');
     Route::get('discharges', [DischargeController::class, 'index'])->name('discharges.index');
+    Route::get('transfers', [TransferController::class, 'index'])->name('transfers.index');
     Route::get('rooms', [RoomController::class, 'index'])->name('rooms.index');
 
     // Beds
@@ -57,6 +60,10 @@ Route::middleware(['auth', 'can_login', 'allocated'])->group(function () {
     Route::post('patients', [PatientController::class, 'store'])->name('patients.store');
     Route::patch('patients/{patient}', [PatientController::class, 'update'])->name('patients.update');
     Route::delete('patients/{patient}', [PatientController::class, 'destroy'])->name('patients.destroy');
+
+    // Transfers
+    Route::post('transfers/{transfer}/accept', [TransferController::class, 'accept'])->name('transfers.accept');
+    Route::post('transfers/{transfer}/reject', [TransferController::class, 'reject'])->name('transfers.reject');
 
     // Facilities
     Route::post('facilities', [FacilityController::class, 'store'])->name('facilities.store');
@@ -76,6 +83,13 @@ Route::middleware(['auth', 'can_login', 'allocated'])->group(function () {
     Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
     Route::patch('notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::delete('notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    // Import
+    Route::get('import', [ImportController::class, 'index'])->name('import.index');
+    Route::get('import/template/rooms-beds', [ImportController::class, 'templateRoomsBeds'])->name('import.template.rooms-beds');
+    Route::get('import/template/patients', [ImportController::class, 'templatePatients'])->name('import.template.patients');
+    Route::post('import/rooms-beds', [ImportController::class, 'importRoomsBeds'])->name('import.rooms-beds');
+    Route::post('import/patients', [ImportController::class, 'importPatients'])->name('import.patients');
 });
 
 require __DIR__.'/auth.php';

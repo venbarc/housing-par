@@ -10,9 +10,10 @@ interface Props {
     facilityId?: number;
     programs?: Program[];
     programId?: number;
+    variant?: 'card' | 'plain';
 }
 
-export default function RoomCreateForm({ room, onDone, facilities = [], facilityId, programs = [], programId }: Props) {
+export default function RoomCreateForm({ room, onDone, facilities = [], facilityId, programs = [], programId, variant = 'card' }: Props) {
     const form = useForm({
         name: '',
         notes: '',
@@ -61,15 +62,8 @@ export default function RoomCreateForm({ room, onDone, facilities = [], facility
         });
     };
 
-    return (
-        <form onSubmit={submit} className="card p-4">
-            <div className="mb-3">
-                <h3 className="text-lg font-bold">{isEditing ? 'Edit Room' : 'Create Room'}</h3>
-                <p className="text-sm text-[var(--text-subtle)]">
-                    {isEditing ? 'Update room details' : 'Add a new room'}
-                </p>
-            </div>
-
+    const content = (
+        <>
             <div className="grid grid-cols-1 gap-3">
                 <div>
                     <label className="field-label">Facility</label>
@@ -130,6 +124,22 @@ export default function RoomCreateForm({ room, onDone, facilities = [], facility
                     Cancel edit
                 </button>
             )}
+        </>
+    );
+
+    if (variant === 'plain') {
+        return <form onSubmit={submit}>{content}</form>;
+    }
+
+    return (
+        <form onSubmit={submit} className="card p-4">
+            <div className="mb-3">
+                <h3 className="text-lg font-bold">{isEditing ? 'Edit Room' : 'Create Room'}</h3>
+                <p className="text-sm text-[var(--text-subtle)]">
+                    {isEditing ? 'Update room details' : 'Add a new room'}
+                </p>
+            </div>
+            {content}
         </form>
     );
 }

@@ -66,8 +66,8 @@ class UsersController extends Controller
             'can_login' => array_key_exists('can_login', $data) ? (bool) $data['can_login'] : (bool) ($user->can_login ?? true),
         ];
 
-        if (! $user->is_admin && $payload['can_login'] && (! $payload['facility_id'] || empty($programIds))) {
-            return back()->withErrors(['program_ids' => 'Non-admin users must have a Location and at least one Program to log in.']);
+        if (! $user->is_admin && $payload['can_login'] && ! $payload['facility_id']) {
+            return back()->withErrors(['facility_id' => 'Non-admin users must have a Location to log in.']);
         }
 
         $user->update($payload);

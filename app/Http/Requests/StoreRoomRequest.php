@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Support\Tenant;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRoomRequest extends FormRequest
@@ -23,10 +22,7 @@ class StoreRoomRequest extends FormRequest
         }
 
         $facilityId = (int) $this->input('facility_id');
-        $programId = (int) $this->input('program_id');
-        $programIds = Tenant::programIds($user);
-
-        return $facilityId === (int) $user->facility_id && in_array($programId, $programIds, true);
+        return $facilityId === (int) $user->facility_id;
     }
 
     public function rules(): array

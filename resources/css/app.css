@@ -288,4 +288,45 @@
         0% { opacity: 0; transform: translateY(12px) scale(0.98); }
         100% { opacity: 1; transform: translateY(0) scale(1); }
     }
+
+    /* Card hover effect for interactive cards */
+    .card-interactive {
+        transition: transform 120ms ease, box-shadow 150ms ease, border-color 150ms ease, background-color 150ms ease;
+    }
+    .card-interactive:hover {
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-1px);
+    }
+
+    /* Progress bar utilities */
+    .progress-track {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--surface-strong);
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 600ms ease;
+    }
+
+    /* Notification type borders */
+    .notif-border-admission { border-left: 3px solid var(--status-available-fg); }
+    .notif-border-critical { border-left: 3px solid var(--status-maintenance-fg); }
+    .notif-border-bed_occupied { border-left: 3px solid var(--status-occupied-fg); }
+    .notif-border-bed_vacated { border-left: 3px solid var(--status-available-fg); }
+    .notif-border-doc_uploaded { border-left: 3px solid var(--status-cleaning-fg); }
+    .notif-border-upcoming_discharge { border-left: 3px solid var(--primary-500); }
+
+    /* Recharts dark mode overrides */
+    .recharts-text { fill: var(--text-muted); }
+    .recharts-cartesian-grid-horizontal line,
+    .recharts-cartesian-grid-vertical line { stroke: var(--border-soft); }
+    .recharts-default-tooltip {
+        background: var(--card) !important;
+        border: 1px solid var(--border-soft) !important;
+        border-radius: 0.75rem !important;
+        color: var(--text-strong) !important;
+    }
 }

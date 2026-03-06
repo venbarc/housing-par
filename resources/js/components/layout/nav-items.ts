@@ -1,4 +1,4 @@
-import { Bell, BedDouble, ClipboardList, LayoutDashboard, Users, Building2, BarChart3, Shield, ClipboardCheck, FolderKanban, UserCircle2 } from 'lucide-react';
+import { ArrowRightLeft, Bell, BedDouble, ClipboardList, LayoutDashboard, Users, Building2, BarChart3, Shield, ClipboardCheck, FolderKanban, UserCircle2, Upload } from 'lucide-react';
 import { User } from '../../types';
 
 export interface NavItem {
@@ -14,7 +14,9 @@ const baseNavItems: NavItem[] = [
     { href: '/patients', label: 'Patients', icon: Users },
     { href: '/documents', label: 'Documents', icon: ClipboardList },
     { href: '/reports', label: 'Reports', icon: BarChart3 },
+    { href: '/import', label: 'Import', icon: Upload },
     { href: '/discharges', label: 'Discharges', icon: ClipboardCheck },
+    { href: '/transfers', label: 'Transfers', icon: ArrowRightLeft },
     { href: '/notifications', label: 'Notifications', icon: Bell },
 ];
 
@@ -30,8 +32,7 @@ export function getNavItems(user: User | null): NavItem[] {
         return [];
     }
 
-    const hasPrograms = (user.program_ids?.length ?? 0) > 0 || !!user.program_id;
-    if (!user.is_admin && (!user.facility_id || !hasPrograms)) {
+    if (!user.is_admin && !user.facility_id) {
         return [{ href: '/pending-assignment', label: 'Account', icon: UserCircle2 }];
     }
 

@@ -10,7 +10,7 @@ export default function PendingAssignment() {
     return (
         <>
             <Head title="Pending Assignment" />
-            <AppShell title="Pending Assignment" description="Your account needs admin allocation (Location + Program access) before you can use the app.">
+            <AppShell title="Pending Assignment" description="Your account needs admin allocation (Location access) before you can use the app.">
                 <section className="card p-4">
                     <h3 className="text-lg font-bold text-[color:var(--text-strong)]">Waiting for admin allocation</h3>
                     <p className="mt-2 text-sm text-[color:var(--text-muted)]">
@@ -24,7 +24,7 @@ export default function PendingAssignment() {
                         )}
                     </p>
                     <p className="mt-2 text-sm text-[color:var(--text-muted)]">
-                        Please contact an administrator to assign your Location and at least one Program.
+                        Please contact an administrator to assign your Location.
                     </p>
 
                     <div className="mt-4">

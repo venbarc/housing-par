@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Support\Tenant;
 
 class Patient extends Model
 {
@@ -25,6 +24,11 @@ class Patient extends Model
         'intake_date',
         'discharge_date',
         'discharged_at',
+        'discharge_disposition',
+        'discharge_destination',
+        'leave_details',
+        'move_to_facility_id',
+        'move_to_program_id',
         'bed_id',
         'discharged_bed_id',
         'psych_services_access',
@@ -73,6 +77,26 @@ class Patient extends Model
         return $this->belongsTo(Bed::class);
     }
 
+    public function facility(): BelongsTo
+    {
+        return $this->belongsTo(Facility::class);
+    }
+
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
+    }
+
+    public function moveToFacility(): BelongsTo
+    {
+        return $this->belongsTo(Facility::class, 'move_to_facility_id');
+    }
+
+    public function moveToProgram(): BelongsTo
+    {
+        return $this->belongsTo(Program::class, 'move_to_program_id');
+    }
+
     public function dischargedBed(): BelongsTo
     {
         return $this->belongsTo(Bed::class, 'discharged_bed_id');
@@ -97,15 +121,6 @@ class Patient extends Model
             return $query->whereRaw('1=0');
         }
 
-        $programIds = Tenant::programIds($user);
-        if (empty($programIds)) {
-            return $query->whereRaw('1=0');
-        }
-
-        return $query
-            ->where('facility_id', $user->facility_id)
-            ->where(function (Builder $q) use ($programIds) {
-                $q->whereIn('program_id', $programIds)->orWhereNull('program_id');
-            });
+        return $query->where('facility_id', $user->facility_id);
     }
 }

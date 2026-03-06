@@ -1,8 +1,6 @@
-import { router } from '@inertiajs/react';
 import { format } from 'date-fns';
-import toast from 'react-hot-toast';
 import { useMemo } from 'react';
-import { Bed } from '../../types';
+import { Bed, Patient, Program } from '../../types';
 import { bedStatusMeta } from '../../lib/status';
 
 function bedTypeLabel(type: Bed['bed_type']): string {
@@ -31,10 +29,14 @@ function formatDate(value?: string | null): string {
 
 interface Props {
     beds: Bed[];
+    programs?: Program[];
+    selectedProgramId?: number | null;
+    onProgramChange?: (programId: number | null) => void;
     onBedClick?: (bed: Bed) => void;
+    onDischarge?: (bed: Bed, patient: Patient) => void;
 }
 
-export default function BedListTable({ beds, onBedClick }: Props) {
+export default function BedListTable({ beds, programs = [], selectedProgramId = null, onProgramChange, onBedClick, onDischarge }: Props) {
     const sortedBeds = useMemo(() => {
         const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
 
@@ -55,13 +57,6 @@ export default function BedListTable({ beds, onBedClick }: Props) {
             });
     }, [beds]);
 
-    const discharge = (bedId: number, patientId: number) => {
-        router.post(`/beds/${bedId}/discharge`, { patient_id: patientId }, {
-            preserveScroll: true,
-            onError: (errors) => toast.error(String(Object.values(errors)[0] ?? 'Could not discharge.')),
-        });
-    };
-
     return (
         <section className="card p-4">
             <div className="mb-3 flex items-center justify-between">
@@ -73,6 +68,36 @@ export default function BedListTable({ beds, onBedClick }: Props) {
                     {beds.length} beds
                 </span>
             </div>
+
+            {programs.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                    <button
+                        type="button"
+                        className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+                            selectedProgramId === null
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-[var(--surface-soft)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]'
+                        }`}
+                        onClick={() => onProgramChange?.(null)}
+                    >
+                        All
+                    </button>
+                    {programs.map((program) => (
+                        <button
+                            key={program.id}
+                            type="button"
+                            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+                                selectedProgramId === program.id
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-[var(--surface-soft)] text-[var(--text-muted)] hover:bg-[var(--surface-strong)]'
+                            }`}
+                            onClick={() => onProgramChange?.(program.id)}
+                        >
+                            {program.name}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             <div className="overflow-x-auto">
                 <table className="min-w-full">
@@ -143,7 +168,7 @@ export default function BedListTable({ beds, onBedClick }: Props) {
                                                 className="btn-secondary !px-3 !py-1.5 !text-xs text-red-600 border-red-200"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    discharge(bed.id, occupant.id);
+                                                    onDischarge?.(bed, occupant);
                                                 }}
                                             >
                                                 Discharge

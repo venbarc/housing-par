@@ -1,21 +1,13 @@
-import { router } from '@inertiajs/react';
 import { format } from 'date-fns';
-import toast from 'react-hot-toast';
 import { patientStatusMeta } from '../../lib/status';
-import { Patient } from '../../types';
+import { Bed, Patient } from '../../types';
 
 interface Props {
     patients: Patient[];
+    onDischarge?: (bed: Bed, patient: Patient) => void;
 }
 
-export default function PatientTable({ patients }: Props) {
-    const discharge = (bedId: number, patientId: number) => {
-        router.post(`/beds/${bedId}/discharge`, { patient_id: patientId }, {
-            preserveScroll: true,
-            onError: (errors) => toast.error(String(Object.values(errors)[0] ?? 'Failed to discharge patient.')),
-        });
-    };
-
+export default function PatientTable({ patients, onDischarge }: Props) {
     return (
         <section className="card p-4" id="patients">
             <div className="mb-3 flex items-center justify-between">
@@ -81,8 +73,11 @@ export default function PatientTable({ patients }: Props) {
                                         {patient.discharged_at ? format(new Date(patient.discharged_at), 'MM/dd/yyyy') : '-'}
                                     </td>
                                     <td className="table-cell">
-                                        {patient.bed_id ? (
-                                            <button className="btn-link text-xs" onClick={() => discharge(patient.bed_id!, patient.id)}>
+                                        {patient.bed_id && patient.bed ? (
+                                            <button
+                                                className="btn-link text-xs"
+                                                onClick={() => onDischarge?.(patient.bed!, patient)}
+                                            >
                                                 Discharge
                                             </button>
                                         ) : (

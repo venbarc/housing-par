@@ -78,10 +78,6 @@ export default function AdminUsersIndex({ users, facilities, programs }: Props) 
             toast.error('Select a Location.');
             return;
         }
-        if (!row.is_admin && row.can_login && (row.program_ids?.length ?? 0) === 0) {
-            toast.error('Select at least one Program.');
-            return;
-        }
         setSaving(id);
         router.patch(
             `/admin/users/${id}/assignment`,
@@ -116,7 +112,7 @@ export default function AdminUsersIndex({ users, facilities, programs }: Props) 
     return (
         <>
             <Head title="Admin Users" />
-            <AppShell title="Admin Users" description="Authorize login and allocate Location + Program access per account.">
+            <AppShell title="Admin Users" description="Authorize login and allocate Location access per account. Program assignments are optional metadata.">
                 <section className="card overflow-x-auto">
                     <table className="min-w-full text-sm">
                         <thead className="bg-[color:var(--surface-soft)] text-left text-[color:var(--text-subtle)]">
@@ -134,7 +130,7 @@ export default function AdminUsersIndex({ users, facilities, programs }: Props) 
                             {users.map((u) => {
                                 const row = draft[u.id] ?? { facility_id: '', program_ids: [], can_login: true, is_admin: Boolean(u.is_admin) };
                                 const disabled = saving === u.id;
-                                const unassigned = !u.is_admin && (!u.facility_id || (u.program_ids?.length ?? 0) === 0);
+                                const unassigned = !u.is_admin && !u.facility_id;
                                 return (
                                     <tr key={u.id} className="border-t border-[color:var(--border-subtle)]">
                                         <td className="px-4 py-3 font-semibold text-[color:var(--text-strong)]">

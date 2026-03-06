@@ -88,9 +88,7 @@ class Tenant
             return;
         }
 
-        $programIds = self::programIds($user);
         abort_unless((int) $room->facility_id === (int) ($user?->facility_id ?? 0), 403);
-        abort_unless(in_array((int) $room->program_id, $programIds, true), 403);
     }
 
     public static function abortIfCannotAccessBed(?User $user, Bed $bed): void
@@ -101,9 +99,7 @@ class Tenant
 
         $room = $bed->room()->select(['id', 'facility_id', 'program_id'])->first();
         abort_unless($room, 403);
-        $programIds = self::programIds($user);
         abort_unless((int) $room->facility_id === (int) ($user?->facility_id ?? 0), 403);
-        abort_unless(in_array((int) $room->program_id, $programIds, true), 403);
     }
 
     public static function abortIfCannotAccessPatient(?User $user, Patient $patient): void
@@ -112,11 +108,7 @@ class Tenant
             return;
         }
 
-        $programIds = self::programIds($user);
         abort_unless((int) $patient->facility_id === (int) ($user?->facility_id ?? 0), 403);
-        if (! empty($patient->program_id)) {
-            abort_unless(in_array((int) $patient->program_id, $programIds, true), 403);
-        }
     }
 
     public static function abortIfCannotAccessDocument(?User $user, Document $document): void
@@ -125,11 +117,7 @@ class Tenant
             return;
         }
 
-        $programIds = self::programIds($user);
         abort_unless((int) $document->facility_id === (int) ($user?->facility_id ?? 0), 403);
-        if (! empty($document->program_id)) {
-            abort_unless(in_array((int) $document->program_id, $programIds, true), 403);
-        }
     }
 
     public static function abortIfCannotAccessNotification(?User $user, Notification $notification): void
@@ -138,11 +126,7 @@ class Tenant
             return;
         }
 
-        $programIds = self::programIds($user);
         abort_unless((int) $notification->facility_id === (int) ($user?->facility_id ?? 0), 403);
-        if (! empty($notification->program_id)) {
-            abort_unless(in_array((int) $notification->program_id, $programIds, true), 403);
-        }
     }
 
     public static function emptyIfUnassigned(Builder $query, ?User $user): Builder

@@ -26,7 +26,12 @@ class DischargeController extends Controller
             ],
             'discharges' => Patient::query()
                 ->visibleTo($user)
-                ->with(['dischargedBed.room.facility', 'dischargedBed.room.program'])
+                ->with([
+                    'dischargedBed.room.facility',
+                    'dischargedBed.room.program',
+                    'moveToFacility:id,name',
+                    'moveToProgram:id,name',
+                ])
                 ->whereNotNull('discharged_at')
                 ->when($filters['from'] ?? null, function ($q, $from) {
                     $start = Carbon::createFromFormat('Y-m-d', $from)->startOfDay();

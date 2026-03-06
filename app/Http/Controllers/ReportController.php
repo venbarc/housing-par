@@ -39,7 +39,12 @@ class ReportController extends Controller
             ],
             'discharges' => Patient::query()
                 ->visibleTo($user)
-                ->with(['dischargedBed.room.facility', 'dischargedBed.room.program'])
+                ->with([
+                    'dischargedBed.room.facility',
+                    'dischargedBed.room.program',
+                    'moveToFacility:id,name',
+                    'moveToProgram:id,name',
+                ])
                 ->whereNotNull('discharged_at')
                 ->when($filters['from'] ?? null, function ($q, $from) {
                     $start = Carbon::createFromFormat('Y-m-d', $from)->startOfDay();
@@ -107,7 +112,12 @@ class ReportController extends Controller
 
         $query = Patient::query()
             ->visibleTo($user)
-            ->with(['dischargedBed.room.facility', 'dischargedBed.room.program'])
+            ->with([
+                'dischargedBed.room.facility',
+                'dischargedBed.room.program',
+                'moveToFacility:id,name',
+                'moveToProgram:id,name',
+            ])
             ->whereNotNull('discharged_at')
             ->orderByDesc('discharged_at');
 
@@ -141,6 +151,11 @@ class ReportController extends Controller
                 'Discharged From',
                 'Location',
                 'Program',
+                'Discharge Disposition',
+                'Discharge Destination',
+                'Leave Details',
+                'Move To Location',
+                'Move To Program',
             ]);
 
             foreach ($patients as $patient) {
@@ -164,6 +179,11 @@ class ReportController extends Controller
                     $dischargedFrom,
                     $room?->facility?->name,
                     $room?->program?->name,
+                    $patient->discharge_disposition,
+                    $patient->discharge_destination,
+                    $patient->leave_details,
+                    $patient->moveToFacility?->name,
+                    $patient->moveToProgram?->name,
                 ]);
             }
 

@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Models\Bed;
+use App\Models\Facility;
 use App\Models\Notification;
 use App\Models\Patient;
+use App\Models\Program;
 use App\Models\Room;
+use App\Support\DischargeOptions;
 use App\Support\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -32,6 +35,17 @@ class PatientController extends Controller
                 ->with(['patients', 'room.facility', 'room.program'])
                 ->orderBy('bed_number')
                 ->get(),
+            'facilities' => $user && $user->is_admin
+                ? Facility::query()->orderBy('name')->get(['id', 'name'])
+                : Facility::query()->where('id', $user?->facility_id)->get(['id', 'name']),
+            'programs' => Program::query()->orderBy('name')->get(['id', 'name']),
+            'transfer_facilities' => Facility::query()->orderBy('name')->get(['id', 'name']),
+            'transfer_programs' => Program::query()->orderBy('name')->get(['id', 'name']),
+            'transfer_pairs' => Room::query()
+                ->select(['facility_id', 'program_id'])
+                ->distinct()
+                ->get(),
+            'discharge_options' => DischargeOptions::map(),
         ]);
     }
 
@@ -65,6 +79,15 @@ class PatientController extends Controller
             $pair = Tenant::pair($user);
             $facilityId = $pair['facility_id'] ?? null;
             $programId = $pair['program_id'] ?? (Tenant::programIds($user)[0] ?? null);
+        }
+
+        if (! $facilityId || ! $programId) {
+            if ($facilityId && ! $programId) {
+                $programId = DB::table('rooms')
+                    ->where('facility_id', $facilityId)
+                    ->orderBy('id')
+                    ->value('program_id');
+            }
         }
 
         if (! $facilityId || ! $programId) {

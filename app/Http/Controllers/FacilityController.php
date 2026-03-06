@@ -27,9 +27,7 @@ class FacilityController extends Controller
 
         return Inertia::render('Facilities/Index', [
             'facilities' => $facilities,
-            'programs' => $user && $user->is_admin
-                ? Program::query()->orderBy('name')->get(['id', 'name'])
-                : $user?->programs()->orderBy('name')->get(['programs.id as id', 'programs.name as name']),
+            'programs' => Program::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
