@@ -63,6 +63,11 @@ export interface Patient {
     intake_date: string;
     discharge_date?: string | null;
     discharged_at?: string | null;
+    discharge_disposition?: string | null;
+    discharge_destination?: string | null;
+    leave_details?: string | null;
+    move_to_facility_id?: number | null;
+    move_to_program_id?: number | null;
     bed_id?: number | null;
     discharged_bed_id?: number | null;
 
@@ -94,6 +99,47 @@ export interface Patient {
     updated_at: string;
     bed?: Bed;
     discharged_bed?: Bed;
+    move_to_facility?: Facility | null;
+    move_to_program?: Program | null;
+}
+
+export interface PatientTransfer {
+    id: number;
+    source_patient_id: number;
+    source_bed_id?: number | null;
+    source_facility_id: number;
+    source_program_id: number;
+    destination_facility_id: number;
+    destination_program_id: number;
+    status: 'pending' | 'accepted' | 'rejected';
+    requested_by_user_id?: number | null;
+    reviewed_by_user_id?: number | null;
+    requested_at?: string | null;
+    reviewed_at?: string | null;
+    accepted_at?: string | null;
+    rejected_at?: string | null;
+    accepted_patient_id?: number | null;
+    acceptance_intake_date?: string | null;
+    acceptance_bed_id?: number | null;
+    created_at: string;
+    updated_at: string;
+    source_patient?: Patient;
+    source_bed?: Bed | null;
+    source_facility?: Facility;
+    source_program?: Program;
+    destination_facility?: Facility;
+    destination_program?: Program;
+    accepted_patient?: Patient | null;
+    acceptance_bed?: Bed | null;
+    requested_by?: User | null;
+    reviewed_by?: User | null;
+}
+
+export type DischargeOptionsMap = Record<string, string[]>;
+
+export interface TransferPair {
+    facility_id: number;
+    program_id: number;
 }
 
 export interface Bed {
@@ -146,6 +192,13 @@ export interface User {
     program?: Program | null;
 }
 
+export interface ImportResult {
+    success: boolean;
+    message: string;
+    errors: string[];
+    imported: number;
+}
+
 export interface PageProps {
     auth: {
         user: User | null;
@@ -154,6 +207,7 @@ export interface PageProps {
     flash?: {
         message?: string | null;
         error?: string | null;
+        import_result?: ImportResult | null;
     };
     [key: string]: unknown;
 }

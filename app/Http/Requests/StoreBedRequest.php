@@ -29,15 +29,9 @@ class StoreBedRequest extends FormRequest
             return false;
         }
 
-        $programIds = Tenant::programIds($user);
-        if (empty($programIds)) {
-            return false;
-        }
-
         return Room::query()
             ->where('id', $roomId)
             ->where('facility_id', $pair['facility_id'])
-            ->whereIn('program_id', $programIds)
             ->exists();
     }
 

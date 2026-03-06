@@ -65,6 +65,15 @@ class DocumentController extends Controller
         }
 
         if (! $facilityId || ! $programId) {
+            if ($facilityId && ! $programId) {
+                $programId = DB::table('rooms')
+                    ->where('facility_id', $facilityId)
+                    ->orderBy('id')
+                    ->value('program_id');
+            }
+        }
+
+        if (! $facilityId || ! $programId) {
             $facilityId = DB::table('facilities')->where('name', 'Default Facility')->value('id')
                 ?? DB::table('facilities')->orderBy('id')->value('id');
             $programId = DB::table('programs')->where('name', 'Navigation Center Info')->value('id')

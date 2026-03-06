@@ -25,11 +25,6 @@ class StoreDocumentRequest extends FormRequest
             return false;
         }
 
-        $programIds = Tenant::programIds($user);
-        if (empty($programIds)) {
-            return false;
-        }
-
         $patientId = $this->input('patient_id');
         $bedId = $this->input('bed_id');
 
@@ -37,17 +32,14 @@ class StoreDocumentRequest extends FormRequest
             return Patient::query()
                 ->where('id', $patientId)
                 ->where('facility_id', $pair['facility_id'])
-                ->where(function ($q) use ($programIds) {
-                    $q->whereIn('program_id', $programIds)->orWhereNull('program_id');
-                })
                 ->exists();
         }
 
         if ($bedId) {
             return Bed::query()
                 ->where('id', $bedId)
-                ->whereHas('room', function ($q) use ($pair, $programIds) {
-                    $q->where('facility_id', $pair['facility_id'])->whereIn('program_id', $programIds);
+                ->whereHas('room', function ($q) use ($pair) {
+                    $q->where('facility_id', $pair['facility_id']);
                 })
                 ->exists();
         }

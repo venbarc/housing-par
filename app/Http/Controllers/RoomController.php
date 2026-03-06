@@ -27,9 +27,7 @@ class RoomController extends Controller
             'facilities' => $user && $user->is_admin
                 ? Facility::query()->orderBy('name')->get(['id', 'name'])
                 : Facility::query()->where('id', $user?->facility_id)->get(['id', 'name']),
-            'programs' => $user && $user->is_admin
-                ? Program::query()->orderBy('name')->get(['id', 'name'])
-                : $user?->programs()->orderBy('name')->get(['programs.id as id', 'programs.name as name']),
+            'programs' => Program::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 

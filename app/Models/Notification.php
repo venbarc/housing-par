@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use App\Support\Tenant;
 
 class Notification extends Model
 {
@@ -41,15 +40,6 @@ class Notification extends Model
             return $query->whereRaw('1=0');
         }
 
-        $programIds = Tenant::programIds($user);
-        if (empty($programIds)) {
-            return $query->whereRaw('1=0');
-        }
-
-        return $query
-            ->where('facility_id', $user->facility_id)
-            ->where(function (Builder $q) use ($programIds) {
-                $q->whereIn('program_id', $programIds)->orWhereNull('program_id');
-            });
+        return $query->where('facility_id', $user->facility_id);
     }
 }

@@ -36,12 +36,7 @@ class UpdateBedRequest extends FormRequest
             return false;
         }
 
-        $programIds = Tenant::programIds($user);
-        if (empty($programIds)) {
-            return false;
-        }
-
-        if ((int) $bedRoom->facility_id !== $pair['facility_id'] || ! in_array((int) $bedRoom->program_id, $programIds, true)) {
+        if ((int) $bedRoom->facility_id !== $pair['facility_id']) {
             return false;
         }
 
@@ -53,7 +48,6 @@ class UpdateBedRequest extends FormRequest
         return Room::query()
             ->where('id', $roomId)
             ->where('facility_id', $pair['facility_id'])
-            ->whereIn('program_id', $programIds)
             ->exists();
     }
 

@@ -92,16 +92,21 @@ export default function DischargeReportTable({ discharges, filters, baseUrl = '/
                 <table className="min-w-full">
                     <thead>
                         <tr className="table-head border-b border-slate-200">
-                            <th className="py-2 text-left">Discharged At</th>
-                            <th className="text-left">First Name</th>
-                            <th className="text-left">Last Name</th>
-                            <th className="text-left">DOB</th>
-                            <th className="text-left">Status</th>
-                            <th className="text-left">Referral From</th>
-                            <th className="text-left">Insurance</th>
-                            <th className="text-left">Intake Date</th>
-                            <th className="text-left">Discharge Date</th>
-                            <th className="text-left">Discharged From</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Discharged At</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">First Name</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Last Name</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">DOB</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Status</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Referral From</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Insurance</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Intake Date</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Discharge Date</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Discharged From</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Disposition</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Destination</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Leave Details</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Move To Location</th>
+                            <th className="whitespace-nowrap py-2 pr-4 text-left">Move To Program</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,16 +120,21 @@ export default function DischargeReportTable({ discharges, filters, baseUrl = '/
 
                             return (
                                 <tr key={patient.id} className="border-b border-slate-100 last:border-b-0">
-                                    <td className="table-cell">{formatDate(patient.discharged_at ?? null)}</td>
-                                    <td className="table-cell">{patient.first_name}</td>
-                                    <td className="table-cell">{patient.last_name}</td>
-                                    <td className="table-cell">{formatDate(patient.dob)}</td>
-                                    <td className="table-cell">{patient.status === 'walk_in' ? 'Walk-In' : 'Referral'}</td>
-                                    <td className="table-cell">{patient.referral_from ?? '-'}</td>
-                                    <td className="table-cell">{patient.insurance ?? '-'}</td>
-                                    <td className="table-cell">{formatDate(patient.intake_date)}</td>
-                                    <td className="table-cell">{formatDate(patient.discharge_date ?? null)}</td>
-                                    <td className="table-cell">{dischargedFrom}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{formatDate(patient.discharged_at ?? null)}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.first_name}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.last_name}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{formatDate(patient.dob)}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.status === 'walk_in' ? 'Walk-In' : 'Referral'}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.referral_from ?? '-'}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.insurance ?? '-'}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{formatDate(patient.intake_date)}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{formatDate(patient.discharge_date ?? null)}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{dischargedFrom}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.discharge_disposition ?? '-'}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.discharge_destination ?? '-'}</td>
+                                    <td className="table-cell pr-4">{patient.leave_details ?? '-'}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.move_to_facility?.name ?? '-'}</td>
+                                    <td className="table-cell whitespace-nowrap pr-4">{patient.move_to_program?.name ?? '-'}</td>
                                 </tr>
                             );
                         })}

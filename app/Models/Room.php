@@ -7,13 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Support\Tenant;
 
 class Room extends Model
 {
     use HasFactory;
 
     protected $fillable = ['name', 'notes', 'facility_id', 'program_id'];
+
+    protected $casts = [
+        'facility_id' => 'integer',
+        'program_id' => 'integer',
+    ];
 
     public function facility(): BelongsTo
     {
@@ -44,13 +48,6 @@ class Room extends Model
             return $query->whereRaw('1=0');
         }
 
-        $programIds = Tenant::programIds($user);
-        if (empty($programIds)) {
-            return $query->whereRaw('1=0');
-        }
-
-        return $query
-            ->where('facility_id', $user->facility_id)
-            ->whereIn('program_id', $programIds);
+        return $query->where('facility_id', $user->facility_id);
     }
 }

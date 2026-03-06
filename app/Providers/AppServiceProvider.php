@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\Facility;
 use App\Models\Notification;
 use App\Models\Patient;
+use App\Models\PatientTransfer;
 use App\Models\Program;
 use App\Models\Room;
 use App\Observers\AuditableObserver;
@@ -31,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         Room::observe(AuditableObserver::class);
         Bed::observe(AuditableObserver::class);
         Patient::observe(AuditableObserver::class);
+        PatientTransfer::observe(AuditableObserver::class);
         Document::observe(AuditableObserver::class);
         Notification::observe(AuditableObserver::class);
 

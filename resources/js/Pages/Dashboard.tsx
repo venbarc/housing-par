@@ -3,6 +3,11 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Bed, Document, Notification, PageProps, Patient, Room } from '../types';
 import AppShell from '../components/layout/AppShell';
 import StatCards from '../components/dashboard/StatCards';
+import BedStatusChart from '../components/dashboard/BedStatusChart';
+import NotificationActivityChart from '../components/dashboard/NotificationActivityChart';
+import RecentPatientsCard from '../components/dashboard/RecentPatientsCard';
+import RecentDocumentsCard from '../components/dashboard/RecentDocumentsCard';
+import RoomOccupancyCard from '../components/dashboard/RoomOccupancyCard';
 import NotificationList from '../components/notifications/NotificationList';
 import { bedStatusMeta } from '../lib/status';
 
@@ -24,9 +29,9 @@ export default function Dashboard({ beds, patients, rooms, documents, notificati
         return () => clearInterval(interval);
     }, []);
 
-    const recentBeds = beds.slice(0, 8);
+    const recentBeds = beds.slice(0, 12);
     const recentNotifications = notifications.slice(0, 8);
-    const recentDocs = documents.slice(0, 5);
+    const occupiedBeds = beds.filter((b) => b.status === 'occupied').length;
 
     return (
         <>
@@ -35,26 +40,44 @@ export default function Dashboard({ beds, patients, rooms, documents, notificati
                 title="Dashboard"
                 description="Operational overview across beds, patients, documents, and rooms."
             >
+                {/* Row 1: Stat Cards */}
                 <StatCards beds={beds} patients={patients} notifications={notifications} />
 
+                {/* Row 2: Bed Status Chart + Bed Overview */}
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+                    <BedStatusChart beds={beds} />
+
                     <section className="card p-4 xl:col-span-2">
                         <div className="mb-3 flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold">Bed Overview</h3>
-                                <p className="text-sm text-[var(--text-subtle)]">Current status per bed</p>
+                            <div className="flex items-center gap-3">
+                                <div>
+                                    <h3 className="text-lg font-bold">Bed Overview</h3>
+                                    <p className="text-sm text-[var(--text-subtle)]">Current status per bed</p>
+                                </div>
+                                <span className="badge border-transparent bg-status-occupied text-status-occupied text-xs">
+                                    {occupiedBeds}/{beds.length} occupied
+                                </span>
                             </div>
                             <Link href="/beds" className="btn-link">
                                 Open Beds
                             </Link>
                         </div>
-                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                             {recentBeds.map((bed) => {
                                 const status = bedStatusMeta[bed.status];
+                                const patient = bed.patients?.[0];
+                                const stayProgress = getStayProgress(patient);
+
                                 return (
-                                    <article key={bed.id} className="surface-subtle p-3">
+                                    <article
+                                        key={bed.id}
+                                        className={`bed-card p-3 status-border-${bed.status}`}
+                                    >
                                         <div className="flex items-center justify-between">
-                                            <p className="text-sm font-bold text-[var(--text-strong)]">Bed {bed.bed_number}</p>
+                                            <div className="flex items-center gap-2">
+                                                {bed.status === 'occupied' && <span className="pulse-dot" style={{ width: 8, height: 8, marginRight: 4 }} />}
+                                                <p className="text-sm font-bold text-[var(--text-strong)]">Bed {bed.bed_number}</p>
+                                            </div>
                                             <span className={`badge border-transparent ${status.bg} ${status.color}`}>
                                                 {status.label}
                                             </span>
@@ -67,67 +90,49 @@ export default function Dashboard({ beds, patients, rooms, documents, notificati
                                                 ? bed.patients!.map((p) => `${p.first_name} ${p.last_name}`).join(', ')
                                                 : 'No intake assigned'}
                                         </p>
+                                        {stayProgress !== null && (
+                                            <div className="progress-track mt-2">
+                                                <div
+                                                    className="progress-fill"
+                                                    style={{ width: `${stayProgress}%`, background: 'var(--status-occupied-fg)' }}
+                                                />
+                                            </div>
+                                        )}
                                     </article>
                                 );
                             })}
+                            {recentBeds.length === 0 && (
+                                <p className="col-span-full py-8 text-center text-sm text-[var(--text-subtle)]">
+                                    No beds configured yet.
+                                </p>
+                            )}
                         </div>
                     </section>
-
-                    <NotificationList notifications={recentNotifications} compact />
                 </div>
 
+                {/* Row 3: Notifications + Activity Chart */}
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <NotificationList notifications={recentNotifications} compact />
+                    <NotificationActivityChart notifications={notifications} />
+                </div>
+
+                {/* Row 4: Patients, Documents, Rooms */}
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                    <section className="card p-4">
-                        <div className="mb-3 flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold">Patients</h3>
-                                <p className="text-sm text-[var(--text-subtle)]">{patients.length} active records</p>
-                            </div>
-                            <Link href="/patients" className="btn-link">Open</Link>
-                        </div>
-                        <p className="text-sm text-[var(--text-muted)]">
-                            Track admissions, status changes, and discharge workflow.
-                        </p>
-                    </section>
-
-                    <section className="card p-4">
-                        <div className="mb-3 flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold">Documents</h3>
-                                <p className="text-sm text-[var(--text-subtle)]">{documents.length} uploaded files</p>
-                            </div>
-                            <Link href="/documents" className="btn-link">Open</Link>
-                        </div>
-                        <ul className="space-y-2">
-                            {recentDocs.map((doc) => (
-                                <li key={doc.id} className="surface-subtle p-2.5 text-sm text-[var(--text-strong)]">
-                                    {doc.file_name}
-                                </li>
-                            ))}
-                            {recentDocs.length === 0 && (
-                                <li className="text-sm text-[var(--text-subtle)]">No documents uploaded yet.</li>
-                            )}
-                        </ul>
-                    </section>
-
-                    <section className="card p-4">
-                        <div className="mb-3 flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-bold">Rooms</h3>
-                                <p className="text-sm text-[var(--text-subtle)]">{rooms.length} configured rooms</p>
-                            </div>
-                            <Link href="/rooms" className="btn-link">Open</Link>
-                        </div>
-                        <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-                            {rooms.slice(0, 5).map((room) => (
-                                <li key={room.id} className="surface-subtle p-2.5">
-                                    {room.name}
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
+                    <RecentPatientsCard patients={patients} />
+                    <RecentDocumentsCard documents={documents} />
+                    <RoomOccupancyCard rooms={rooms} beds={beds} />
                 </div>
             </AppShell>
         </>
     );
+}
+
+function getStayProgress(patient?: Patient): number | null {
+    if (!patient?.intake_date || !patient?.discharge_date) return null;
+    const start = new Date(patient.intake_date).getTime();
+    const end = new Date(patient.discharge_date).getTime();
+    const now = Date.now();
+    if (end <= start) return null;
+    const pct = Math.min(100, Math.max(0, Math.round(((now - start) / (end - start)) * 100)));
+    return pct;
 }

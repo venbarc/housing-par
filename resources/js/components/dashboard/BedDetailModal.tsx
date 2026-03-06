@@ -2,7 +2,7 @@ import { FormEvent, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { ArrestCount, Bed, DaysRange, Document, PastYearCount, Room, ServiceAccess, YesNoNA } from '../../types';
+import { ArrestCount, Bed, DaysRange, Document, PastYearCount, Patient, Room, ServiceAccess, YesNoNA } from '../../types';
 import { bedStatusMeta, patientStatusMeta } from '../../lib/status';
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
     room?: Room;
     rooms: Room[];
     documents: Document[];
+    onDischarge?: (bed: Bed, patient: Patient) => void;
     onClose: () => void;
 }
 
@@ -56,7 +57,7 @@ function daysRangeLabel(value: DaysRange | null | undefined): string {
     return '14+';
 }
 
-export default function BedDetailModal({ bed, room, rooms, documents, onClose }: Props) {
+export default function BedDetailModal({ bed, room, rooms, documents, onDischarge, onClose }: Props) {
     const [form, setForm] = useState(() => ({
         bed_number: bed?.bed_number ?? '',
         status: bed?.status ?? 'available',
@@ -111,13 +112,6 @@ export default function BedDetailModal({ bed, room, rooms, documents, onClose }:
                 setDeleting(false);
                 onClose();
             },
-        });
-    };
-
-    const onDischargePatient = (patientId: number) => {
-        router.post(`/beds/${bed.id}/discharge`, { patient_id: patientId }, {
-            preserveScroll: true,
-            onError: (errors) => toast.error(String(Object.values(errors)[0] ?? 'Discharge failed')),
         });
     };
 
@@ -311,7 +305,7 @@ export default function BedDetailModal({ bed, room, rooms, documents, onClose }:
                                             <button
                                                 type="button"
                                                 className="btn-secondary px-2 py-1 text-xs text-red-600 border-red-200"
-                                                onClick={() => onDischargePatient(patient.id)}
+                                                onClick={() => onDischarge?.(bed, patient)}
                                             >
                                                 Discharge
                                             </button>

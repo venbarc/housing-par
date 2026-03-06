@@ -126,6 +126,20 @@ class AuditLogger
             return [(int) ($model->facility_id ?? 0) ?: null, (int) ($model->program_id ?? 0) ?: null];
         }
 
+        // Transfer: prefer destination tenancy, fallback to source tenancy.
+        if ($model instanceof \App\Models\PatientTransfer) {
+            $destinationFacilityId = (int) ($model->destination_facility_id ?? 0);
+            $destinationProgramId = (int) ($model->destination_program_id ?? 0);
+            if ($destinationFacilityId && $destinationProgramId) {
+                return [$destinationFacilityId, $destinationProgramId];
+            }
+
+            return [
+                (int) ($model->source_facility_id ?? 0) ?: null,
+                (int) ($model->source_program_id ?? 0) ?: null,
+            ];
+        }
+
         return [$facilityId ?: null, $programId ?: null];
     }
 
