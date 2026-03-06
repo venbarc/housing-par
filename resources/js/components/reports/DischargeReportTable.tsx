@@ -1,4 +1,6 @@
 import { format } from 'date-fns';
+import { FormEvent, useMemo, useState } from 'react';
+import { router } from '@inertiajs/react';
 import { Patient } from '../../types';
 
 function formatDate(value?: string | null): string {
@@ -12,9 +14,39 @@ function formatDate(value?: string | null): string {
 
 interface Props {
     discharges: Patient[];
+    filters?: {
+        from?: string | null;
+        to?: string | null;
+    };
+    baseUrl?: string;
+    exportUrl?: string;
 }
 
-export default function DischargeReportTable({ discharges }: Props) {
+export default function DischargeReportTable({ discharges, filters, baseUrl = '/reports', exportUrl }: Props) {
+    const [from, setFrom] = useState(filters?.from ?? '');
+    const [to, setTo] = useState(filters?.to ?? '');
+
+    const exportHref = useMemo(() => {
+        if (!exportUrl) return null;
+        const params = new URLSearchParams();
+        if (from) params.set('from', from);
+        if (to) params.set('to', to);
+        const query = params.toString();
+        return query ? `${exportUrl}?${query}` : exportUrl;
+    }, [exportUrl, from, to]);
+
+    function submit(e: FormEvent) {
+        e.preventDefault();
+        router.get(
+            baseUrl,
+            {
+                from: from || null,
+                to: to || null,
+            },
+            { preserveScroll: true, replace: true }
+        );
+    }
+
     return (
         <section className="card p-4">
             <div className="mb-3 flex items-center justify-between">
@@ -26,6 +58,35 @@ export default function DischargeReportTable({ discharges }: Props) {
                     {discharges.length} records
                 </span>
             </div>
+
+            <form onSubmit={submit} className="mb-3 flex flex-wrap items-end gap-2">
+                <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-[var(--text-subtle)]">From</label>
+                    <input
+                        type="date"
+                        value={from}
+                        onChange={(e) => setFrom(e.target.value)}
+                        className="input mt-1"
+                    />
+                </div>
+                <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-[var(--text-subtle)]">To</label>
+                    <input
+                        type="date"
+                        value={to}
+                        onChange={(e) => setTo(e.target.value)}
+                        className="input mt-1"
+                    />
+                </div>
+                <button type="submit" className="btn-secondary">
+                    Apply
+                </button>
+                {exportHref && (
+                    <a className="btn-secondary" href={exportHref}>
+                        Download CSV
+                    </a>
+                )}
+            </form>
 
             <div className="overflow-x-auto">
                 <table className="min-w-full">
@@ -73,4 +134,3 @@ export default function DischargeReportTable({ discharges }: Props) {
         </section>
     );
 }
-

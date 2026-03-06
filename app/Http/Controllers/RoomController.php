@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreRoomRequest;
+use App\Models\Facility;
+use App\Models\Program;
 use App\Models\Room;
+use App\Support\Tenant;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -12,27 +16,56 @@ class RoomController extends Controller
 {
     public function index(): Response
     {
+        $user = request()->user();
+
         return Inertia::render('Rooms/Index', [
-            'rooms' => Room::with('beds.patients')->orderBy('name')->get(),
+            'rooms' => Room::query()
+                ->visibleTo($user)
+                ->with(['beds.patients'])
+                ->orderBy('name')
+                ->get(),
+            'facilities' => $user && $user->is_admin
+                ? Facility::query()->orderBy('name')->get(['id', 'name'])
+                : Facility::query()->where('id', $user?->facility_id)->get(['id', 'name']),
+            'programs' => $user && $user->is_admin
+                ? Program::query()->orderBy('name')->get(['id', 'name'])
+                : $user?->programs()->orderBy('name')->get(['programs.id as id', 'programs.name as name']),
         ]);
     }
 
     public function store(StoreRoomRequest $request): RedirectResponse
     {
-        Room::create($request->validated());
+        $data = $request->validated();
+
+        if (! $request->user()->is_admin) {
+            $pair = Tenant::pair($request->user());
+            $data['facility_id'] = $pair['facility_id'];
+        }
+
+        Room::create($data);
 
         return back();
     }
 
     public function update(StoreRoomRequest $request, Room $room): RedirectResponse
     {
-        $room->update($request->validated());
+        Tenant::abortIfCannotAccessRoom($request->user(), $room);
+
+        $data = $request->validated();
+
+        if (! $request->user()->is_admin) {
+            $pair = Tenant::pair($request->user());
+            $data['facility_id'] = $pair['facility_id'];
+        }
+
+        $room->update($data);
 
         return back();
     }
 
     public function destroy(Room $room): RedirectResponse
     {
+        Tenant::abortIfCannotAccessRoom(request()->user(), $room);
         $room->delete();
 
         return back();

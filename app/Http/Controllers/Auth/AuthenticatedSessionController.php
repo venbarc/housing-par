@@ -26,6 +26,17 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
+        $user = $request->user();
+        if ($user && $user->can_login === false) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()->withErrors([
+                'email' => 'Your account is not authorized to log in.',
+            ]);
+        }
+
         return redirect()->intended(route('dashboard'));
     }
 

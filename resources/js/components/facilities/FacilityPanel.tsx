@@ -1,23 +1,27 @@
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import toast from 'react-hot-toast';
-import { Bed, Facility, Room } from '../../types';
+import { Bed, Facility, PageProps, Program, Room } from '../../types';
 
 interface Props {
     facilities: Facility[];
+    programs: Pick<Program, 'id' | 'name'>[];
     onEdit?: (facility: Facility) => void;
     editingId?: number | null;
 }
 
-export default function FacilityPanel({ facilities, onEdit, editingId }: Props) {
+export default function FacilityPanel({ facilities, programs, onEdit, editingId }: Props) {
     const [openFacilityIds, setOpenFacilityIds] = useState<number[]>([]);
     const [addingRoomFor, setAddingRoomFor] = useState<number | null>(null);
+    const { auth } = usePage<PageProps>().props;
+    const isAdmin = Boolean(auth.user?.is_admin);
 
     const roomForm = useForm({
         name: '',
         notes: '',
         facility_id: 0,
+        program_id: programs[0]?.id ?? 0,
     });
 
     const submitRoom = (event: FormEvent, facilityId: number) => {
@@ -162,6 +166,22 @@ export default function FacilityPanel({ facilities, onEdit, editingId }: Props) 
                                     onSubmit={(e) => submitRoom(e, facility.id)}
                                     className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2"
                                 >
+                                    <div>
+                                        <label className="field-label">Program</label>
+                                        <select
+                                            className="form-select"
+                                            value={roomForm.data.program_id}
+                                            onChange={(e) => roomForm.setData('program_id', Number(e.target.value))}
+                                            required
+                                            disabled={!isAdmin || programs.length <= 1}
+                                        >
+                                            {programs.map((program) => (
+                                                <option key={program.id} value={program.id}>
+                                                    {program.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     <div>
                                         <label className="field-label">Room Name</label>
                                         <input

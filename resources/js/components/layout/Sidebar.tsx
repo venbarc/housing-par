@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { navItems } from './nav-items';
+import { getNavItems } from './nav-items';
 import { PageProps } from '../../types';
 import { cn } from '../../lib/utils';
 import LogoMark from './LogoMark';
@@ -13,6 +13,7 @@ function isActivePath(url: string, href: string, exact = false): boolean {
 export default function Sidebar() {
     const { url, props } = usePage<PageProps>();
     const unread = props.auth.unread_notifications ?? 0;
+    const navItems = getNavItems(props.auth.user);
 
     return (
         <aside className="hidden w-72 shrink-0 lg:block">
@@ -44,8 +45,8 @@ export default function Sidebar() {
                                         )}
                                     </Link>
                                 </li>
-                            );
-                        })}
+                        );
+                    })}
                     </ul>
                 </nav>
             </div>

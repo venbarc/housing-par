@@ -29,12 +29,22 @@ export interface Facility {
     updated_at: string;
 }
 
+export interface Program {
+    id: number;
+    name: string;
+    notes?: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Room {
     id: number;
     name: string;
     notes?: string | null;
     facility_id: number;
+    program_id: number;
     facility?: Facility;
+    program?: Program;
     beds?: Bed[];
     created_at: string;
     updated_at: string;
@@ -42,6 +52,8 @@ export interface Room {
 
 export interface Patient {
     id: number;
+    facility_id: number;
+    program_id: number;
     first_name: string;
     last_name: string;
     dob: string;
@@ -100,6 +112,8 @@ export interface Document {
     id: number;
     patient_id: number | null;
     bed_id?: number | null;
+    facility_id: number;
+    program_id: number;
     file_name: string;
     file_type: string;
     file_size: number;
@@ -113,6 +127,8 @@ export interface Notification {
     type: NotificationType;
     message: string;
     is_read: boolean;
+    facility_id: number;
+    program_id: number;
     created_at: string;
 }
 
@@ -121,6 +137,13 @@ export interface User {
     name: string;
     email: string;
     email_verified_at?: string | null;
+    is_admin?: boolean;
+    can_login?: boolean;
+    facility_id?: number | null;
+    program_id?: number | null;
+    program_ids?: number[];
+    facility?: Facility | null;
+    program?: Program | null;
 }
 
 export interface PageProps {

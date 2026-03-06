@@ -6,7 +6,7 @@ import BedListTable from '../../components/beds/BedListTable';
 import { Bed, Document, Facility, PageProps, Patient, Room } from '../../types';
 import BedDetailModal from '../../components/dashboard/BedDetailModal';
 import BedCreateModal from '../../components/forms/BedCreateModal';
-import BedIntakeModal from '../../components/forms/BedIntakeModal';
+import BedAllocateModal from '../../components/forms/BedAllocateModal';
 
 interface Props extends PageProps {
     beds: Bed[];
@@ -72,9 +72,10 @@ export default function BedsIndex({ beds, patients, rooms, facilities, documents
                 onClose={() => setCreateBedOpen(false)}
             />
 
-            <BedIntakeModal
+            <BedAllocateModal
                 open={Boolean(intakeBedId)}
                 bed={intakeBed}
+                patients={patients}
                 onClose={() => setIntakeBedId(null)}
             />
         </>

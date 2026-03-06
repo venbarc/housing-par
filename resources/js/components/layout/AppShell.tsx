@@ -4,7 +4,7 @@ import { PageProps } from '../../types';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { cn } from '../../lib/utils';
-import { navItems } from './nav-items';
+import { getNavItems } from './nav-items';
 
 interface Props {
     title: string;
@@ -22,6 +22,7 @@ function isActivePath(url: string, href: string, exact = false): boolean {
 export default function AppShell({ title, description, actions, children }: Props) {
     const { url, props } = usePage<PageProps>();
     const unread = props.auth.unread_notifications ?? 0;
+    const navItems = getNavItems(props.auth.user);
 
     return (
         <div className="min-h-screen pb-20 lg:pb-6">

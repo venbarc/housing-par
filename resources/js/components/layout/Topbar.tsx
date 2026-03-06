@@ -15,6 +15,10 @@ export default function Topbar({ title, description, actions }: Props) {
     const { auth } = usePage<PageProps>().props;
     const unread = auth.unread_notifications ?? 0;
     const user = auth.user;
+    const isAdmin = !!user?.is_admin;
+
+    const locationName =
+        user?.facility?.name ?? (isAdmin ? 'All Locations' : user?.facility_id ? `Location #${user.facility_id}` : 'Unassigned');
 
     return (
         <header className="card mb-4 px-4 py-3 sm:mb-5 sm:px-5">
@@ -49,7 +53,10 @@ export default function Topbar({ title, description, actions }: Props) {
             </div>
             {user && (
                 <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Signed in as {user.name}
+                    Signed in as <span className="normal-case">{user.name}</span>
+                    {isAdmin && <span className="ml-2 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">Admin</span>}
+                    <span className="mx-2">•</span>
+                    Location: <span className="normal-case">{locationName}</span>
                 </p>
             )}
         </header>

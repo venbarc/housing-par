@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Bed;
 use App\Models\Facility;
-use App\Models\Notification;
 use App\Models\Patient;
+use App\Models\Program;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -16,109 +16,115 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Default admin user
-        User::firstOrCreate(
-            ['email' => 'admin@hospital.local'],
+        $admin = User::firstOrNew(['email' => 'admin@hospital.local']);
+        $admin->name = 'Admin Nurse';
+        $admin->is_admin = true;
+        $admin->can_login = true;
+        if (! $admin->exists) {
+            $admin->password = Hash::make('password');
+        }
+        $admin->save();
+
+        $programs = [
+            'Navigation Center Info' => Program::firstOrCreate(['name' => 'Navigation Center Info'], ['notes' => 'Default program']),
+            'Anthem BH' => Program::firstOrCreate(['name' => 'Anthem BH'], ['notes' => 'Anthem behavioral health']),
+            'CSP' => Program::firstOrCreate(['name' => 'CSP'], ['notes' => 'Community Support Program']),
+            'County' => Program::firstOrCreate(['name' => 'County'], ['notes' => 'County program']),
+            'Ndoc' => Program::firstOrCreate(['name' => 'Ndoc'], ['notes' => 'NDOC program']),
+        ];
+
+        $facilities = [
+            'Nellis' => Facility::firstOrCreate(['name' => 'Nellis'], ['notes' => '2112 N Nellis Las Vegas, NV 89115']),
+            'Navigation Center' => Facility::firstOrCreate(['name' => 'Navigation Center'], ['notes' => '2805 E Fremont St (Old Annex)']),
+        ];
+
+        $roomSeeds = [
+            // Nellis
+            ['facility' => 'Nellis', 'program' => 'Anthem BH', 'rooms' => ['101', '102']],
+            ['facility' => 'Nellis', 'program' => 'CSP', 'rooms' => ['201', '202']],
+
+            // Navigation Center
+            ['facility' => 'Navigation Center', 'program' => 'County', 'rooms' => ['301', '302']],
+            ['facility' => 'Navigation Center', 'program' => 'CSP', 'rooms' => ['401', '402']],
+            ['facility' => 'Navigation Center', 'program' => 'Ndoc', 'rooms' => ['501', '502']],
+        ];
+
+        foreach ($roomSeeds as $seed) {
+            $facility = $facilities[$seed['facility']];
+            $program = $programs[$seed['program']];
+
+            foreach ($seed['rooms'] as $roomName) {
+                $room = Room::firstOrCreate(
+                    [
+                        'facility_id' => $facility->id,
+                        'program_id' => $program->id,
+                        'name' => $roomName,
+                    ],
+                    ['notes' => "{$seed['facility']} • {$seed['program']}"]
+                );
+
+                Bed::firstOrCreate(
+                    ['room_id' => $room->id, 'bed_number' => 'A'],
+                    ['bed_type' => 'single', 'status' => 'available']
+                );
+
+                Bed::firstOrCreate(
+                    ['room_id' => $room->id, 'bed_number' => 'B'],
+                    ['bed_type' => 'ada_single', 'status' => 'available']
+                );
+            }
+        }
+
+        // Seed a few unassigned patients so bed allocation can pick from a dropdown.
+        $today = now()->toDateString();
+
+        Patient::firstOrCreate(
+            ['first_name' => 'Alex', 'last_name' => 'Nellis', 'dob' => '1990-01-15', 'facility_id' => $facilities['Nellis']->id, 'program_id' => $programs['Anthem BH']->id],
+            ['status' => 'referral', 'referral_from' => 'Cares Campus', 'intake_date' => $today, 'bed_id' => null]
+        );
+        Patient::firstOrCreate(
+            ['first_name' => 'Jordan', 'last_name' => 'Nellis', 'dob' => '1988-06-02', 'facility_id' => $facilities['Nellis']->id, 'program_id' => $programs['CSP']->id],
+            ['status' => 'walk_in', 'referral_from' => null, 'intake_date' => $today, 'bed_id' => null]
+        );
+
+        Patient::firstOrCreate(
+            ['first_name' => 'Casey', 'last_name' => 'NavCenter', 'dob' => '1992-09-10', 'facility_id' => $facilities['Navigation Center']->id, 'program_id' => $programs['County']->id],
+            ['status' => 'referral', 'referral_from' => 'HOSN', 'intake_date' => $today, 'bed_id' => null]
+        );
+        Patient::firstOrCreate(
+            ['first_name' => 'Taylor', 'last_name' => 'NavCenter', 'dob' => '1995-03-22', 'facility_id' => $facilities['Navigation Center']->id, 'program_id' => $programs['CSP']->id],
+            ['status' => 'walk_in', 'referral_from' => null, 'intake_date' => $today, 'bed_id' => null]
+        );
+        Patient::firstOrCreate(
+            ['first_name' => 'Riley', 'last_name' => 'NavCenter', 'dob' => '1985-12-05', 'facility_id' => $facilities['Navigation Center']->id, 'program_id' => $programs['Ndoc']->id],
+            ['status' => 'referral', 'referral_from' => 'NDOC', 'intake_date' => $today, 'bed_id' => null]
+        );
+
+        // Example staff accounts (password: "password")
+        $nellisUser = User::firstOrCreate(
+            ['email' => 'nellis.staff@hospital.local'],
             [
-                'name' => 'Admin Nurse',
+                'name' => 'Nellis Staff',
                 'password' => Hash::make('password'),
+                'is_admin' => false,
+                'can_login' => true,
+                'facility_id' => $facilities['Nellis']->id,
+                'program_id' => $programs['Anthem BH']->id,
             ]
         );
+        $nellisUser->programs()->sync([$programs['Anthem BH']->id, $programs['CSP']->id]);
 
-        $facility = Facility::firstOrCreate(
-            ['name' => 'Default Facility'],
-            ['notes' => 'Seeded default facility']
+        $navUser = User::firstOrCreate(
+            ['email' => 'nav.staff@hospital.local'],
+            [
+                'name' => 'Navigation Center Staff',
+                'password' => Hash::make('password'),
+                'is_admin' => false,
+                'can_login' => true,
+                'facility_id' => $facilities['Navigation Center']->id,
+                'program_id' => $programs['County']->id,
+            ]
         );
-
-        // Rooms
-        $room101 = Room::create(['name' => '101', 'notes' => 'Sample room', 'facility_id' => $facility->id]);
-        $room102 = Room::create(['name' => '102', 'notes' => 'Sample room', 'facility_id' => $facility->id]);
-        $room103 = Room::create(['name' => '103', 'notes' => 'Sample room', 'facility_id' => $facility->id]);
-
-        // Beds
-        $bed101a = Bed::create(['bed_number' => 'A', 'bed_type' => 'single', 'room_id' => $room101->id, 'status' => 'occupied']);
-        Bed::create(['bed_number' => 'B', 'bed_type' => 'ada_single', 'room_id' => $room101->id, 'status' => 'available']);
-
-        $bed102top = Bed::create(['bed_number' => 'Top', 'bed_type' => 'double_top', 'room_id' => $room102->id, 'status' => 'occupied']);
-        Bed::create(['bed_number' => 'Bottom', 'bed_type' => 'double_bottom', 'room_id' => $room102->id, 'status' => 'available']);
-
-        Bed::create(['bed_number' => 'A', 'bed_type' => 'single', 'room_id' => $room103->id, 'status' => 'available']);
-        Bed::create(['bed_number' => 'B', 'bed_type' => 'single', 'room_id' => $room103->id, 'status' => 'maintenance']);
-
-        // Patients (assigned to beds via bed_id)
-        Patient::create([
-            'first_name' => 'Levi',
-            'last_name' => 'Braziel',
-            'dob' => '1992-07-30',
-            'status' => 'referral',
-            'referral_from' => 'HOSN',
-            'insurance' => null,
-            'intake_date' => now()->subDays(3)->toDateString(),
-            'discharge_date' => null,
-            'psych_services_access' => 'wc_health',
-            'therapy_services_access' => 'wc_health',
-            'pcp_services_access' => 'other_agency',
-            'medications_access' => 'no',
-            'er_visits_past_year' => '1_3',
-            'inpatient_stays_past_year' => '0',
-            'dependable_transportation' => true,
-            'stable_housing' => false,
-            'homelessness_days_past_year' => '10_plus',
-            'vital_documents_access' => true,
-            'phone_access' => true,
-            'employed_or_income' => false,
-            'support_system' => true,
-            'is_veteran' => false,
-            'veteran_connected_services' => 'na',
-            'seeking_mat_services' => false,
-            'enrolled_mat_services' => false,
-            'arrests_past_12_months' => '0',
-            'arrests_lifetime' => '1_2',
-            'jail_days_past_12_months' => '0',
-            'jail_days_lifetime' => '1_7',
-            'prison_time_past_12_months' => '0',
-            'prison_time_lifetime' => '0',
-            'bed_id' => $bed101a->id,
-        ]);
-
-        Patient::create([
-            'first_name' => 'Tyler',
-            'last_name' => 'Miller-Jones',
-            'dob' => '1992-07-30',
-            'status' => 'walk_in',
-            'referral_from' => null,
-            'insurance' => null,
-            'intake_date' => now()->subDays(1)->toDateString(),
-            'discharge_date' => null,
-            'psych_services_access' => 'no',
-            'therapy_services_access' => 'no',
-            'pcp_services_access' => 'no',
-            'medications_access' => 'no',
-            'er_visits_past_year' => '0',
-            'inpatient_stays_past_year' => '0',
-            'dependable_transportation' => false,
-            'stable_housing' => false,
-            'homelessness_days_past_year' => '10_plus',
-            'vital_documents_access' => false,
-            'phone_access' => true,
-            'employed_or_income' => false,
-            'support_system' => false,
-            'is_veteran' => true,
-            'veteran_connected_services' => 'no',
-            'seeking_mat_services' => false,
-            'enrolled_mat_services' => false,
-            'arrests_past_12_months' => '0',
-            'arrests_lifetime' => '0',
-            'jail_days_past_12_months' => '0',
-            'jail_days_lifetime' => '0',
-            'prison_time_past_12_months' => '0',
-            'prison_time_lifetime' => '0',
-            'bed_id' => $bed102top->id,
-        ]);
-
-        // Notifications
-        Notification::create(['type' => 'admission', 'message' => 'New intake: Levi Braziel', 'is_read' => false]);
-        Notification::create(['type' => 'bed_occupied', 'message' => 'Bed A assigned to Levi Braziel', 'is_read' => true]);
-        Notification::create(['type' => 'admission', 'message' => 'New intake: Tyler Miller-Jones', 'is_read' => false]);
-        Notification::create(['type' => 'bed_occupied', 'message' => 'Bed Top assigned to Tyler Miller-Jones', 'is_read' => false]);
+        $navUser->programs()->sync([$programs['County']->id, $programs['CSP']->id, $programs['Ndoc']->id]);
     }
 }
