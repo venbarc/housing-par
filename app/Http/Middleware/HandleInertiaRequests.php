@@ -17,12 +17,24 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
+        $user = $request->user();
+
+        if ($user) {
+            $user->loadMissing([
+                'facility:id,name',
+                'program:id,name',
+                'programs:id,name',
+            ]);
+
+            $user->setAttribute('program_ids', $user->programs->pluck('id')->values());
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
                 'unread_notifications' => $request->user()
-                    ? Notification::where('is_read', false)->count()
+                    ? Notification::query()->visibleTo($request->user())->where('is_read', false)->count()
                     : 0,
             ],
             'flash' => [

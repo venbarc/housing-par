@@ -6,12 +6,21 @@ import { PageProps, Patient } from '../../types';
 
 interface Props extends PageProps {
     discharges: Patient[];
+    bed_counts: {
+        occupied: number;
+        available: number;
+        maintenance: number;
+    };
+    filters: {
+        from?: string | null;
+        to?: string | null;
+    };
 }
 
-export default function ReportsIndex({ discharges }: Props) {
+export default function ReportsIndex({ discharges, bed_counts, filters }: Props) {
     useEffect(() => {
         const interval = setInterval(() => {
-            router.reload({ only: ['discharges'] });
+            router.reload({ only: ['discharges', 'bed_counts'] });
         }, 8000);
         return () => clearInterval(interval);
     }, []);
@@ -20,9 +29,34 @@ export default function ReportsIndex({ discharges }: Props) {
         <>
             <Head title="Reports" />
             <AppShell title="Reports" description="Discharges and operational reporting">
-                <DischargeReportTable discharges={discharges} />
+                <section className="card p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-bold">Bed Status Exports</h3>
+                            <p className="text-sm text-[var(--text-subtle)]">Download CSV snapshots of current bed statuses.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        <a className="btn-secondary justify-center" href="/reports/export/beds?status=occupied">
+                            Download Occupied ({bed_counts.occupied})
+                        </a>
+                        <a className="btn-secondary justify-center" href="/reports/export/beds?status=available">
+                            Download Available ({bed_counts.available})
+                        </a>
+                        <a className="btn-secondary justify-center" href="/reports/export/beds?status=maintenance">
+                            Download Maintenance ({bed_counts.maintenance})
+                        </a>
+                    </div>
+                </section>
+
+                <DischargeReportTable
+                    discharges={discharges}
+                    filters={filters}
+                    baseUrl="/reports"
+                    exportUrl="/reports/export/discharges"
+                />
             </AppShell>
         </>
     );
 }
-

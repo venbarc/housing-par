@@ -2,13 +2,59 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Bed;
+use App\Models\Patient;
+use App\Support\Tenant;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdatePatientRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->is_admin) {
+            return true;
+        }
+
+        $pair = Tenant::pair($user);
+        if (! $pair) {
+            return false;
+        }
+
+        /** @var Patient|null $patient */
+        $patient = $this->route('patient');
+        if (! $patient) {
+            return false;
+        }
+
+        $programIds = Tenant::programIds($user);
+        if (empty($programIds)) {
+            return false;
+        }
+
+        if ((int) $patient->facility_id !== $pair['facility_id'] || (! empty($patient->program_id) && ! in_array((int) $patient->program_id, $programIds, true))) {
+            return false;
+        }
+
+        $bedId = $this->input('bed_id');
+        if (! array_key_exists('bed_id', $this->all())) {
+            return true;
+        }
+
+        if (! $bedId) {
+            return true;
+        }
+
+        return Bed::query()
+            ->where('id', $bedId)
+            ->whereHas('room', function ($q) use ($pair, $programIds) {
+                $q->where('facility_id', $pair['facility_id'])->whereIn('program_id', $programIds);
+            })
+            ->exists();
     }
 
     public function rules(): array

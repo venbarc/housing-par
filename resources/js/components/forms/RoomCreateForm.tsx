@@ -1,20 +1,23 @@
 import { useForm } from '@inertiajs/react';
 import { FormEvent, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Facility, Room } from '../../types';
+import { Facility, Program, Room } from '../../types';
 
 interface Props {
     room?: Room | null;
     onDone?: () => void;
     facilities?: Facility[];
     facilityId?: number;
+    programs?: Program[];
+    programId?: number;
 }
 
-export default function RoomCreateForm({ room, onDone, facilities = [], facilityId }: Props) {
+export default function RoomCreateForm({ room, onDone, facilities = [], facilityId, programs = [], programId }: Props) {
     const form = useForm({
         name: '',
         notes: '',
         facility_id: facilityId ?? (facilities[0]?.id ?? ''),
+        program_id: programId ?? (programs[0]?.id ?? ''),
     });
 
     const isEditing = Boolean(room);
@@ -24,12 +27,18 @@ export default function RoomCreateForm({ room, onDone, facilities = [], facility
             form.setData('name', room.name);
             form.setData('notes', room.notes ?? '');
             form.setData('facility_id', room.facility_id);
+            form.setData('program_id', room.program_id);
         } else {
             form.reset();
             if (facilityId) {
                 form.setData('facility_id', facilityId);
             } else if (facilities[0]) {
                 form.setData('facility_id', facilities[0].id);
+            }
+            if (programId) {
+                form.setData('program_id', programId);
+            } else if (programs[0]) {
+                form.setData('program_id', programs[0].id);
             }
         }
         form.clearErrors();
@@ -74,6 +83,22 @@ export default function RoomCreateForm({ room, onDone, facilities = [], facility
                         {facilities.map((facility) => (
                             <option value={facility.id} key={facility.id}>
                                 {facility.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="field-label">Program</label>
+                    <select
+                        className="form-select"
+                        value={form.data.program_id}
+                        onChange={(e) => form.setData('program_id', Number(e.target.value))}
+                        required
+                        disabled={Boolean(programId)}
+                    >
+                        {programs.map((program) => (
+                            <option value={program.id} key={program.id}>
+                                {program.name}
                             </option>
                         ))}
                     </select>

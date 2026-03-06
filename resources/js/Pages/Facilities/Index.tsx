@@ -3,13 +3,14 @@ import { Head, router } from '@inertiajs/react';
 import AppShell from '../../components/layout/AppShell';
 import FacilityPanel from '../../components/facilities/FacilityPanel';
 import FacilityCreateForm from '../../components/forms/FacilityCreateForm';
-import { Facility, PageProps } from '../../types';
+import { Facility, PageProps, Program } from '../../types';
 
 interface Props extends PageProps {
     facilities: Facility[];
+    programs: Pick<Program, 'id' | 'name'>[];
 }
 
-export default function FacilitiesIndex({ facilities }: Props) {
+export default function FacilitiesIndex({ facilities, programs }: Props) {
     const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
 
     useEffect(() => {
@@ -25,6 +26,7 @@ export default function FacilitiesIndex({ facilities }: Props) {
                     <div className="xl:col-span-2">
                         <FacilityPanel
                             facilities={facilities}
+                            programs={programs}
                             onEdit={setEditingFacility}
                             editingId={editingFacility?.id ?? null}
                         />
